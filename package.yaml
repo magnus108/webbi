@@ -27,6 +27,7 @@ dependencies:
 - comonad
 - containers
 - filepath
+- extra
 
 
 default-extensions:
