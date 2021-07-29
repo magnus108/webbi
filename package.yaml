@@ -24,6 +24,7 @@ dependencies:
 - hakyll
 - clay
 - blaze-html
+- comonad
 
 default-extensions:
 - OverloadedStrings

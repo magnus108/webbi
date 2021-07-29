@@ -36,6 +36,7 @@ library
       base >=4.7 && <5
     , blaze-html
     , clay
+    , comonad
     , hakyll
   default-language: Haskell2010
 
@@ -52,6 +53,7 @@ executable webbi-exe
       base >=4.7 && <5
     , blaze-html
     , clay
+    , comonad
     , hakyll
     , webbi
   default-language: Haskell2010
@@ -70,6 +72,7 @@ test-suite webbi-test
       base >=4.7 && <5
     , blaze-html
     , clay
+    , comonad
     , hakyll
     , webbi
   default-language: Haskell2010

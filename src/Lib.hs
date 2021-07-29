@@ -16,17 +16,28 @@ compileCss = match "**/css/*.hs" $ do
     compile $ getResourceString >>= withItemBody (unixFilter "runghc" [])
 
 
-compileMenu :: Rules ()
-compileMenu = return ()
-
-
 compileContent :: Rules ()
 compileContent = do
+    compileMenu
     compilePosts
 
 
+content :: Pattern
+content = "posts/*"
+
+
+compileMenu :: Rules ()
+compileMenu = match content $ do
+    version "menu" $ compile $ do
+        item <- setVersion Nothing <$> getUnderlying
+        route <- getRoute item
+        case route of
+            Nothing -> noResult "No menu item"
+            Just r -> makeItem r
+
+
 compilePosts :: Rules ()
-compilePosts = match "posts/*" $ do
+compilePosts = match content $ do
     route $ setExtension "html"
     compile
         $   pandocCompiler
