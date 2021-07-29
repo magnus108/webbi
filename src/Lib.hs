@@ -6,10 +6,13 @@ module Lib
     )
 where
 
+import Debug.Trace
+import Data.Maybe
+
 import qualified Text.Blaze.Html5              as H
 import           Text.Blaze.Html.Renderer.String
                                                 ( renderHtml )
-import           System.FilePath                ( splitPath )
+import           System.FilePath                ( splitPath, (</>))
 
 import           Hakyll
 
@@ -65,12 +68,24 @@ getMenu = do
     menu  <- makeMenu <$> loadAll (fromVersion $ Just "menu")
 
     route <- getRoute =<< getUnderlying
+
+    let m = findRoute (fromJust route) menu
     --
     -- find route in tree?
     --
     case route of
         Nothing -> noResult "No current route"
         Just r  -> return $ renderHtml $ showMenu menu
+
+
+findRoute :: FilePath -> Menu -> Menu
+findRoute route menu = find routes menu
+    where
+        routes = splitPath route
+        find [] m = m
+        find (x:[]) (Menu m) = find [] (Menu (fromJust (RT.down (Right x) m)))
+        find (x:xs) (Menu m) = find xs (Menu (fromJust (RT.down (Left x) m)))
+
 
 
 makeMenu :: [Item FilePath] -> Menu
