@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       Lib
+      Webbi.Menu
   other-modules:
       Paths_webbi
   hs-source-dirs:
