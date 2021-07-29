@@ -1,7 +1,5 @@
 module Webbi.Utils.RoseTree where
 
-import Debug.Trace
-
 data RoseTree b l = Leaf l | Branch b [RoseTree  b l]
     deriving (Eq, Ord, Show)
 
@@ -36,9 +34,15 @@ mkTreeZipper x = TreeZipper x []
 down :: (Show b, Show l, Eq b, Eq l) => Either b l -> TreeZipper b l -> Maybe (TreeZipper b l)
 down x (TreeZipper (Branch parent items) bs) =
     let
-        (ls, rs) = break (\item -> (traceShow (datum item) (datum item)) == (traceShow x x)) items
+        (ls, rs) = break (\item -> (datum item) == x) items
     in
         case rs of
             y:ys -> Just (TreeZipper y (Context ls parent ys:bs))
             _ -> Nothing
 down _ _ = Nothing
+
+
+up :: TreeZipper b l -> Maybe (TreeZipper b l)
+up (TreeZipper item (Context ls x rs:bs)) =
+    Just (TreeZipper (Branch x (ls <> [item] <> rs)) bs)
+up _ = Nothing
