@@ -1,6 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
 import           Clay
-import           Clay
 
 import qualified Data.Text.Lazy.IO             as T
 
