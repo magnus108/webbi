@@ -25,6 +25,9 @@ dependencies:
 - clay
 - blaze-html
 - comonad
+- containers
+- filepath
+
 
 default-extensions:
 - OverloadedStrings

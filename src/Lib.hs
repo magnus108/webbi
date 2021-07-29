@@ -9,9 +9,14 @@ where
 import qualified Text.Blaze.Html5              as H
 import           Text.Blaze.Html.Renderer.String
                                                 ( renderHtml )
+import           System.FilePath                ( splitPath )
+
 import           Hakyll
 
-import           Webbi.Menu
+import           Webbi.Menu                     ( Menu(..) )
+import qualified Webbi.Utils.RoseTree          as RT
+
+import qualified Webbi.Menu                    as M
 
 
 compileCss :: Rules ()
@@ -57,20 +62,28 @@ postContext = do
 
 getMenu :: Compiler String
 getMenu = do
-    -- make prefixtree??
-    menu  <- fmap itemBody <$> loadAll (fromVersion $ Just "menu")
+    menu  <- makeMenu <$> loadAll (fromVersion $ Just "menu")
+
     route <- getRoute =<< getUnderlying
+    --
     -- find route in tree?
+    --
     case route of
         Nothing -> noResult "No current route"
-        Just r  -> return $ renderHtml $ showMenu $ makeMenu r menu
+        Just r  -> return $ renderHtml $ showMenu menu
 
 
-makeMenu :: FilePath -> [FilePath] -> Menu
-makeMenu = undefined
+makeMenu :: [Item FilePath] -> Menu
+makeMenu items = M.fromTrie $ foldl (\acc m -> M.insert m acc) M.empty paths
+    where paths = fmap (splitPath . itemBody) items
+
 
 showMenu :: Menu -> H.Html
-showMenu = undefined
+showMenu (Menu m) = case m of
+    (RT.TreeZipper (RT.Leaf x     ) []             ) -> H.p ""
+    (RT.TreeZipper (RT.Branch _ xs) []             ) -> H.p ""
+    (RT.TreeZipper (RT.Leaf x     ) (RT.Context _ _ _:_)) -> H.p ""
+    (RT.TreeZipper (RT.Branch _ xs) (RT.Context _ _ _:_)) -> H.p ""
 
 
 compileTemplates :: Rules ()
