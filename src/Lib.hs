@@ -101,9 +101,9 @@ findRoute route menu = find routes menu
 
 
 makeMenu :: [Item FilePath] -> Menu
-makeMenu items = M.fromTrie
-    $ foldl (\acc m -> M.insert m acc) M.empty paths
-    where paths = fmap (splitPath . itemBody) items
+makeMenu items = M.fromTrie (traceShow trie trie)
+    where paths = fmap itemBody items
+          trie = M.fromList paths
 
 
 showMenu :: Menu -> H.Html
