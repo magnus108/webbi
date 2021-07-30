@@ -33,19 +33,14 @@ mkRoseTree' (xs) = (fmap (\((k, Trie b v)) -> if null v then Leaf k else Branch 
 data Trie = Trie Bool (M.Map String Trie)
     deriving Show
 
+instance Semigroup Trie where
+    (Trie True m1) <> (Trie _ m2) = Trie True (m1 <> m2)
+    (Trie _ m1) <> (Trie True m2) = Trie True (m1 <> m2)
+    (Trie _ m1) <> (Trie _ m2) = Trie False (m1 <> m2)
 
 empty :: Trie
 empty = Trie False M.empty
 
--- index.html
--- posts/index.html
--- posts/post1.html
--- posts/post2.html
---       / true
---      /
---    posts true
---   /          \
---  post1,true post2, true
 
 fromList :: [FilePath] -> Trie
 fromList = foldr insert empty
@@ -54,7 +49,6 @@ fromList = foldr insert empty
 insert :: FilePath -> Trie -> Trie
 insert "" (Trie _ m) = Trie True m
 insert "index.html" (Trie _ m) = Trie True m
-insert fp (Trie b m) = Trie b $ M.alter (Just . maybe (insert subPath empty) (insert subPath)) x m
+insert fp (Trie b m) = Trie b $ M.insertWith (<>) x (insert (joinPath xs) empty) m
     where
         (x:xs) = splitPath fp
-        subPath = joinPath xs
