@@ -6,14 +6,19 @@ module Lib
     )
 where
 
-import Debug.Trace
-import Data.Maybe
+import           Debug.Trace
+import           Data.Maybe
 
-import Data.Either.Extra
+import           Data.Either.Extra
+import           Text.Blaze.Html5               ( (!) )
 import qualified Text.Blaze.Html5              as H
+import qualified Text.Blaze.Html5.Attributes   as A
 import           Text.Blaze.Html.Renderer.String
                                                 ( renderHtml )
-import           System.FilePath                ( splitPath, dropFileName, takeBaseName )
+import           System.FilePath                ( splitPath
+                                                , dropFileName
+                                                , takeBaseName
+                                                )
 
 import           Hakyll
 
@@ -86,38 +91,45 @@ getMenu = do
 
 findRoute :: FilePath -> Menu -> Menu
 findRoute route menu = find routes menu
-    where
-        routes = splitPath route
-        find [] m = m
-        find ["index.html"] m = m
-        find (x:[]) (Menu m) = find [] (Menu (fromJust (RT.down (Right x) m)))
-        find (x:xs) (Menu m) = find xs (Menu (fromJust (RT.down (Left x) m)))
+  where
+    routes = splitPath route
+    find [] m = m
+    find ["index.html"] m = m
+    find (x : []) (Menu m) = find [] (Menu (fromJust (RT.down (Right x) m)))
+    find (x : xs) (Menu m) = find xs (Menu (fromJust (RT.down (Left x) m)))
 
 
 
 makeMenu :: [Item FilePath] -> Menu
-makeMenu items = M.fromTrie $ foldl (\acc m -> M.insert m acc) M.empty (traceShow paths paths)
+makeMenu items = M.fromTrie
+    $ foldl (\acc m -> M.insert m acc) M.empty paths
     where paths = fmap (splitPath . itemBody) items
 
 
 showMenu :: Menu -> H.Html
 showMenu (Menu m) = showIt m
-    where 
-        showIt i = case i of
-            (RT.TreeZipper (RT.Leaf x     ) []             ) -> H.p (H.toHtml x)
-            (RT.TreeZipper (RT.Branch x xs) []             ) -> H.div $ do
-                                                                    mapM_ (H.p . H.toHtml . fromEither . RT.datum) xs
-            tree@(RT.TreeZipper (RT.Leaf x     ) (RT.Context ls p rs:more)) ->
-                                                                H.div $ do
-                                                                        H.p (H.toHtml x)
-                                                                        showIt $ fromJust (RT.up tree)
+  where
+    showIt i = case i of
+        (RT.TreeZipper (RT.Leaf x) []) -> H.p (H.toHtml x)
+        (RT.TreeZipper (RT.Branch x xs) []) ->
+            mapM_ (H.p . H.toHtml . fromEither . RT.datum) xs
+        tree@(RT.TreeZipper (RT.Leaf x) (RT.Context ls p rs : more)) -> do
+            showIt $ fromJust (RT.up tree)
+            mapM_ (H.p . H.toHtml . fromEither . RT.datum) (filter (\ii -> fromEither (RT.datum ii) /= "index.html" )ls)
+            H.p (H.toHtml x)
+            mapM_ (H.p . H.toHtml . fromEither . RT.datum) (filter (\ii -> fromEither (RT.datum ii) /= "index.html" )rs)
+                                                                    {-
             tree@(RT.TreeZipper (RT.Branch x _) (RT.Context _ _ _:[])) -> 
                                                                 H.div $ do
                                                                         showIt $ fromJust (RT.up tree)
-            tree@(RT.TreeZipper (RT.Branch x _) (RT.Context _ _ _:_)) -> 
-                                                                H.div $ do
-                                                                        H.p (H.toHtml x)
-                                                                        showIt $ fromJust (RT.up tree)
+                                                                        -}
+        --overvej om der er behov for at kunne skelne mellem flere slags branch/leaf
+        tree@(RT.TreeZipper (RT.Branch x _) (RT.Context ls p rs : _)) ->
+            H.div ! A.style "background: red" $ do
+                showIt $ fromJust (RT.up tree)
+                mapM_ (H.p . H.toHtml . fromEither . RT.datum) ls
+                H.p (H.toHtml x)
+                mapM_ (H.p . H.toHtml . fromEither . RT.datum) rs
 
 
 compileTemplates :: Rules ()
