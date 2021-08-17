@@ -1,5 +1,6 @@
 module Webbi.Utils.RoseTree where
 
+
 data RoseTree b l = Leaf l | Branch b [RoseTree  b l]
     deriving (Eq, Ord, Show)
 

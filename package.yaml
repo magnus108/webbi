@@ -32,7 +32,6 @@ dependencies:
 
 default-extensions:
 - OverloadedStrings
-- DerivingStrategies
 
 library:
   source-dirs: src
