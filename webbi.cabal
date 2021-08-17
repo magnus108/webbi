@@ -28,6 +28,7 @@ library
       Lib
       Webbi.Menu
       Webbi.Utils.RoseTree
+      Webbi.Utils.TreeZipper
       Webbi.Utils.Trie
   other-modules:
       Paths_webbi

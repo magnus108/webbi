@@ -24,6 +24,7 @@ import           Hakyll
 
 import           Webbi.Menu                     ( Menu(..) )
 import qualified Webbi.Utils.RoseTree          as RT
+import qualified Webbi.Utils.TreeZipper        as TZ
 
 import qualified Webbi.Menu                    as M
 
@@ -71,7 +72,7 @@ postContext = do
 
 getMenu :: Compiler String
 getMenu = do
-    menu  <- makeMenu <$> loadAll (fromVersion $ Just "menu")
+    menu  <- M.fromList <$> fmap itemBody <$> loadAll (fromVersion $ Just "menu")
 
     -- maybe find or compile indexfile for given route? if not exists
     route <- getRoute =<< getUnderlying
@@ -79,7 +80,7 @@ getMenu = do
     --
     -- find route in tree?
     --
-    let m = findRoute (fromJust route) menu
+    let m = M.findRoute (fromJust route) menu
 
     traceShowM m
 
@@ -88,62 +89,8 @@ getMenu = do
         Just r  -> return $ renderHtml $ showMenu m
 
 
-
-findRoute :: FilePath -> Menu -> Menu
-findRoute route menu = find routes menu
-  where
-    routes = splitPath route
-    find [] m = m
-    find ["index.html"] m = m
-    find (x : []) (Menu m) = find [] (Menu (fromJust (RT.down (Right x) m)))
-    find (x : xs) (Menu m) = find xs (Menu (fromJust (RT.down (Left x) m)))
-
-
-makeMenu :: [Item FilePath] -> Menu
-makeMenu items = M.fromTrie (traceShow trie trie)
-    where paths = fmap itemBody items
-          trie = M.fromList paths
-
-
 showMenu :: Menu -> H.Html
-showMenu (Menu m) = showIt m
-  where
-    showcontext ctx = undefined
-    showIt i = case i of
-        (RT.TreeZipper (RT.Leaf x) []) -> H.p (H.toHtml x)
-        (RT.TreeZipper (RT.Branch x xs) []) -> do
-            H.p (H.toHtml x)
-            mapM_ (H.p . H.toHtml . fromEither . RT.datum) xs
-        tree@(RT.TreeZipper (RT.Leaf x) (RT.Context ls p rs : more)) -> do
-            showIt $ fromJust (RT.up tree)
-            mapM_ (H.p . H.toHtml . fromEither . RT.datum) (filter (\ii -> fromEither (RT.datum ii) /= "index.html" )ls)
-            H.p (H.toHtml x)
-            mapM_ (H.p . H.toHtml . fromEither . RT.datum) (filter (\ii -> fromEither (RT.datum ii) /= "index.html" )rs)
-                                                                    {-
-            tree@(RT.TreeZipper (RT.Branch x _) (RT.Context _ _ _:[])) -> 
-                                                                H.div $ do
-                                                                        showIt $ fromJust (RT.up tree)
-                                                                        -}
-        --overvej om der er behov for at kunne skelne mellem flere slags branch/leaf
-        --måske folder/nonfolder/file
-        tree@(RT.TreeZipper (RT.Branch x xs) (RT.Context ls p rs : _)) ->
-            H.div ! A.style "background: red" $ do
-                H.p (H.toHtml p) ! A.style "background: yellow"
-                H.div ! A.style "background: orange" $ do
-                    mapM_ (H.p . H.toHtml . fromEither . RT.datum) ls
-                H.p (H.toHtml x) ! A.style "background: blue"
-                H.div ! A.style "background: green" $ do
-                    mapM_ (H.p . H.toHtml . fromEither . RT.datum) rs
-                H.div ! A.style "background: purple" $ do
-                    mapM_ (H.p . H.toHtml . fromEither . RT.datum) xs
-                    {-
-                mapM_ (H.p . H.toHtml . fromEither . RT.datum) ls
-                H.p (H.toHtml x)
-                mapM_ (H.p . H.toHtml . fromEither . RT.datum) rs
-                -- kan ikke vise børn de skal jo vises under
-                mapM_ (H.p . H.toHtml . fromEither . RT.datum) xs
-
-    -}
+showMenu (Menu m) = undefined
 
 compileTemplates :: Rules ()
 compileTemplates = match "templates/*" $ compile templateBodyCompiler
