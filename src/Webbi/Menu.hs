@@ -1,12 +1,12 @@
 module Webbi.Menu
     ( Menu(..)
     , fromList
-    , findRoute
+    , navigateTo
     , showMenu
     )
 where
 
-import           System.FilePath                ( splitPath )
+import           System.FilePath                ( splitPath, combine )
 import           Data.Maybe
 import qualified Text.Blaze.Html5              as H
 
@@ -15,22 +15,34 @@ import qualified Webbi.Utils.RoseTree          as R
 import qualified Webbi.Utils.Trie              as T
 
 
-data Menu = Menu (TZ.TreeZipper FilePath FilePath)
+import qualified Data.Map                      as M
+
+
+data Menu = Menu (TZ.TreeZipper FilePath)
     deriving (Show)
 
 
+insert :: [String] -> T.Trie String -> T.Trie String
+insert [] (T.Trie _ m) = T.Trie True m
+insert ["index.html"] (T.Trie _ m) = T.Trie True m
+insert (x:xs) (T.Trie b m) = T.Trie b $ M.insertWith (<>) x (insert xs T.empty) m
+
+
 fromList :: [FilePath] -> Menu
-fromList = Menu . TZ.fromTrie . T.fromList
+fromList = Menu . TZ.fromTrie . T.fromList insert . fmap splitPath . fmap makeAbsolute
 
 
-findRoute :: FilePath -> Menu -> Menu
-findRoute route menu = find routes menu
+makeAbsolute :: FilePath -> FilePath
+makeAbsolute = combine "/"
+
+
+navigateTo :: FilePath -> Menu -> Menu
+navigateTo route menu = find routes menu
   where
     routes = splitPath route
     find [] m = m
     find ["index.html"] m = m
-    find (x : []) (Menu m) = find [] (Menu (fromJust (TZ.down (Right x) m)))
-    find (x : xs) (Menu m) = find xs (Menu (fromJust (TZ.down (Left x) m)))
+    find (x : xs) (Menu m) = find xs (Menu (fromJust (TZ.down x m)))
 
 
 showMenu :: Menu -> H.Html

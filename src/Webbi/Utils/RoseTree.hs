@@ -6,22 +6,30 @@ import qualified Webbi.Utils.Trie                      as T
 import qualified Data.Map                      as M
 
 
-data RoseTree b l = Leaf l | Branch b [RoseTree  b l]
+data RoseTree a = RoseTree a [RoseTree a]
     deriving (Eq, Ord, Show)
 
-datum :: RoseTree b l -> Either b l
-datum (Branch b _) = Left b
-datum (Leaf l) = Right l
 
-children :: RoseTree b l -> [RoseTree b l]
-children (Branch _ xs) = xs
-children _ = []
+datum :: RoseTree a -> a
+datum (RoseTree x _) = x
 
 
-fromTrie :: Trie -> RoseTree String String
+children :: RoseTree a -> [RoseTree a]
+children (RoseTree _ xs) = xs
+
+
+fromTrie :: Trie String -> [RoseTree String]
+fromTrie x = fmap (\(k,v) -> RoseTree k (fromTrie v)) xs -- safeHead $ fmap (\(k,v) -> if (null (T.map v)) then lllll ) xs -- Branch (M. undefined -- Branch "/" (fmap (\(k, (T.Trie b v)) -> if null v then Leaf k else Branch k (mkRoseTree' (M.toList v))) xs)
+    where
+        m = T.map x
+        xs = M.toList m
+
+    {-
+fromTrie :: Trie String -> RoseTree String String
 fromTrie (T.Trie b m) = Branch "/" (fmap (\(k, (T.Trie b v)) -> if null v then Leaf k else Branch k (mkRoseTree' (M.toList v))) xs)
     where
         xs = M.toList m
 
-mkRoseTree' :: [(String, Trie)] -> [RoseTree String String]
+mkRoseTree' :: [(String, Trie String)] -> [RoseTree String String]
 mkRoseTree' (xs) = (fmap (\((k, T.Trie b v)) -> if null v then Leaf k else Branch k (mkRoseTree' (M.toList v))) xs)
+-}

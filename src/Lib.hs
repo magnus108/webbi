@@ -73,24 +73,19 @@ postContext = do
 getMenu :: Compiler String
 getMenu = do
     menu  <- M.fromList <$> fmap itemBody <$> loadAll (fromVersion $ Just "menu")
-
-    -- maybe find or compile indexfile for given route? if not exists
     route <- getRoute =<< getUnderlying
-
-    --
-    -- find route in tree?
-    --
-    let m = M.findRoute (fromJust route) menu
-
-    traceShowM m
 
     case route of
         Nothing -> noResult "No current route"
-        Just r  -> return $ renderHtml $ showMenu m
+        Just r  -> do
+            let m = M.navigateTo r menu
+            traceShowM m
+            return $ renderHtml $ showMenu m
 
 
 showMenu :: Menu -> H.Html
 showMenu (Menu m) = undefined
+
 
 compileTemplates :: Rules ()
 compileTemplates = match "templates/*" $ compile templateBodyCompiler
