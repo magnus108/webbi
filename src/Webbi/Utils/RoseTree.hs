@@ -5,6 +5,11 @@ import qualified Webbi.Utils.Trie                      as T
 
 import qualified Data.Map                      as M
 
+import           Text.Blaze.Html5               ( (!) )
+import qualified Text.Blaze.Html5              as H
+import qualified Text.Blaze.Html5.Attributes   as A
+
+
 
 data RoseTree a = RoseTree a [RoseTree a]
     deriving (Eq, Ord, Show)
@@ -18,18 +23,14 @@ children :: RoseTree a -> [RoseTree a]
 children (RoseTree _ xs) = xs
 
 
-fromTrie :: Trie String -> [RoseTree String]
-fromTrie x = fmap (\(k,v) -> RoseTree k (fromTrie v)) xs -- safeHead $ fmap (\(k,v) -> if (null (T.map v)) then lllll ) xs -- Branch (M. undefined -- Branch "/" (fmap (\(k, (T.Trie b v)) -> if null v then Leaf k else Branch k (mkRoseTree' (M.toList v))) xs)
+fromTrie :: String -> Trie String -> RoseTree String
+fromTrie root trie = RoseTree root (children trie)
     where
-        m = T.map x
-        xs = M.toList m
+        children = fmap (\(k,v) -> RoseTree k (children v)) . M.toList . T.map
 
-    {-
-fromTrie :: Trie String -> RoseTree String String
-fromTrie (T.Trie b m) = Branch "/" (fmap (\(k, (T.Trie b v)) -> if null v then Leaf k else Branch k (mkRoseTree' (M.toList v))) xs)
-    where
-        xs = M.toList m
 
-mkRoseTree' :: [(String, Trie String)] -> [RoseTree String String]
-mkRoseTree' (xs) = (fmap (\((k, T.Trie b v)) -> if null v then Leaf k else Branch k (mkRoseTree' (M.toList v))) xs)
--}
+showIt :: RoseTree String -> H.Html
+showIt (RoseTree x []) = H.p ! A.style "background: green" $ (H.toHtml x)
+showIt (RoseTree x xs) = H.div ! A.style "background: purple" $ do
+                            -- show x as part of context?
+                            mapM_ (H.p . H.toHtml . datum) xs

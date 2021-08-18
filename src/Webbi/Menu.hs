@@ -6,7 +6,7 @@ module Webbi.Menu
     )
 where
 
-import           System.FilePath                ( splitPath, combine )
+import           System.FilePath                ( splitPath )
 import           Data.Maybe
 import qualified Text.Blaze.Html5              as H
 
@@ -29,11 +29,7 @@ insert (x:xs) (T.Trie b m) = T.Trie b $ M.insertWith (<>) x (insert xs T.empty) 
 
 
 fromList :: [FilePath] -> Menu
-fromList = Menu . TZ.fromTrie . T.fromList insert . fmap splitPath . fmap makeAbsolute
-
-
-makeAbsolute :: FilePath -> FilePath
-makeAbsolute = combine "/"
+fromList = Menu . TZ.fromTrie "/" . T.fromList insert . fmap splitPath
 
 
 navigateTo :: FilePath -> Menu -> Menu
@@ -46,7 +42,15 @@ navigateTo route menu = find routes menu
 
 
 showMenu :: Menu -> H.Html
-showMenu (Menu m) = undefined {-showIt m
+showMenu (Menu m) = showIt m
+    where
+        showIt (TZ.TreeZipper x []) = H.p (R.showIt x)
+        showIt (TZ.TreeZipper x xs) = do
+            mapM_ TZ.showIt xs
+            H.p (R.showIt x)
+
+
+            {-
   where
     showcontext ctx = undefined
     showIt i = case i of

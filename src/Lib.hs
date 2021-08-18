@@ -18,6 +18,7 @@ import           Text.Blaze.Html.Renderer.String
 import           System.FilePath                ( splitPath
                                                 , dropFileName
                                                 , takeBaseName
+                                                , (</>)
                                                 )
 
 import           Hakyll
@@ -79,12 +80,10 @@ getMenu = do
         Nothing -> noResult "No current route"
         Just r  -> do
             let m = M.navigateTo r menu
+            traceShowM "mmmmm"
+            traceShowM r
             traceShowM m
-            return $ renderHtml $ showMenu m
-
-
-showMenu :: Menu -> H.Html
-showMenu (Menu m) = undefined
+            return $ renderHtml $ M.showMenu m
 
 
 compileTemplates :: Rules ()
