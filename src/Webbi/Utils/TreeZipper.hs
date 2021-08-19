@@ -54,6 +54,16 @@ up (TreeZipper item ((Context ls x rs):bs)) =
     Just (TreeZipper (RoseTree x (ls <> [item] <> rs)) bs)
 
 
+lefts :: TreeZipper a -> [RoseTree a]
+lefts (TreeZipper _ []) = []
+lefts (TreeZipper item ((Context ls x rs):bs)) = ls
+
+
+rights :: TreeZipper a -> [RoseTree a]
+rights (TreeZipper _ []) = []
+rights (TreeZipper item ((Context ls x rs):bs)) = rs
+
+
 path :: TreeZipper String -> String
 path (TreeZipper rt []) = datum rt
 path tz = case up tz of
@@ -82,12 +92,10 @@ showChildren x = showItems "background: white" (catMaybes asTrees)
 
 
 showLevel :: H.AttributeValue -> TreeZipper String -> H.Html
-showLevel color tz@(TreeZipper rt []) = do
-    showItem "background: gold" tz
-showLevel color tz@(TreeZipper rt ((Context ls p rs):bs)) = do
+showLevel color tz = do
     let upp = fromJust $ up tz
-    let ls' = catMaybes $ fmap (\v -> down (datum v) upp) ls
-    let rs' = catMaybes $ fmap (\v -> down (datum v) upp) rs
+    let ls' = catMaybes $ fmap (\v -> down (datum v) upp) (lefts tz)
+    let rs' = catMaybes $ fmap (\v -> down (datum v) upp) (rights tz)
     showItems "background: white" ls'
     showItem color tz
     showItems "background: white" rs'
@@ -98,9 +106,9 @@ showHierachy m = do
         Nothing -> return ()
         Just parent ->
                 showHierachy parent
-    showLevel "background: blue" m
+    H.div $ showLevel "background: orange" m
 
 showMenu :: TreeZipper String -> H.Html
 showMenu s = do
     showHierachy s
-    showChildren s
+    H.div $ showChildren s
