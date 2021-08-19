@@ -3,7 +3,9 @@ module Webbi.Utils.TreeZipper where
 import Webbi.Utils.Trie (Trie)
 import Webbi.Utils.RoseTree as RT
 
+import Data.Maybe
 import Data.String
+
 import           Text.Blaze.Html5               ( (!) )
 import qualified Text.Blaze.Html5              as H
 import qualified Text.Blaze.Html5.Attributes   as A
@@ -11,10 +13,12 @@ import qualified Text.Blaze.Html5.Attributes   as A
 
 data Context a = Context [RoseTree a] a [RoseTree a]
     deriving (Show, Eq, Ord)
+    deriving (Functor)
 
 
 data TreeZipper a = TreeZipper (RoseTree a) [Context a]
     deriving (Show, Eq, Ord)
+    deriving (Functor)
 
 
 toRoseTree :: TreeZipper a -> RoseTree a
@@ -50,23 +54,43 @@ up (TreeZipper item ((Context ls x rs):bs)) =
     Just (TreeZipper (RoseTree x (ls <> [item] <> rs)) bs)
 
 
-showItem :: H.AttributeValue -> RoseTree String -> H.Html
-showItem color rt = H.a ! A.style color ! A.href (fromString link) $ H.toHtml link
-    where link = datum rt
+path :: TreeZipper String -> String
+path (TreeZipper rt []) = datum rt
+path tz = case up tz of
+            Nothing -> (datum (toRoseTree tz))
+            Just tz' -> path tz' ++ (datum (toRoseTree tz))
 
-showItems :: H.AttributeValue -> [RoseTree String] -> H.Html
+
+name :: TreeZipper String -> String
+name = datum . toRoseTree
+
+
+showItem :: H.AttributeValue -> TreeZipper String -> H.Html
+showItem color tz = H.a ! A.style color ! A.href (fromString link) $ H.toHtml text
+    where link = path tz
+          text = name tz
+
+
+showItems :: H.AttributeValue -> [TreeZipper String] -> H.Html
 showItems color xs = mapM_ (showItem color) xs
 
+
 showChildren :: TreeZipper String -> H.Html
-showChildren = showItems "background: white" . children . toRoseTree
+showChildren x = showItems "background: white" (catMaybes asTrees)
+    where childrens= children (toRoseTree x)
+          asTrees = fmap (\v -> down (datum v) x) childrens
+
 
 showLevel :: H.AttributeValue -> TreeZipper String -> H.Html
-showLevel color (TreeZipper rt []) = do
-    showItem "background: gold" rt
-showLevel color (TreeZipper rt ((Context ls p rs):bs)) = do
-    showItems "background: white" ls
-    showItem color rt
-    showItems "background: white" rs
+showLevel color tz@(TreeZipper rt []) = do
+    showItem "background: gold" tz
+showLevel color tz@(TreeZipper rt ((Context ls p rs):bs)) = do
+    let upp = fromJust $ up tz
+    let ls' = catMaybes $ fmap (\v -> down (datum v) upp) ls
+    let rs' = catMaybes $ fmap (\v -> down (datum v) upp) rs
+    showItems "background: white" ls'
+    showItem color tz
+    showItems "background: white" rs'
 
 showHierachy :: TreeZipper String -> H.Html
 showHierachy m = do

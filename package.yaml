@@ -32,6 +32,8 @@ dependencies:
 
 default-extensions:
 - OverloadedStrings
+- DerivingStrategies
+- DeriveFunctor
 
 library:
   source-dirs: src

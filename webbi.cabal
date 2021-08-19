@@ -36,6 +36,8 @@ library
       src
   default-extensions:
       OverloadedStrings
+      DerivingStrategies
+      DeriveFunctor
   build-depends:
       base >=4.7 && <5
     , blaze-html
@@ -55,6 +57,8 @@ executable webbi-exe
       app
   default-extensions:
       OverloadedStrings
+      DerivingStrategies
+      DeriveFunctor
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
@@ -77,6 +81,8 @@ test-suite webbi-test
       test
   default-extensions:
       OverloadedStrings
+      DerivingStrategies
+      DeriveFunctor
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5

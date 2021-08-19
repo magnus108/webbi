@@ -8,6 +8,7 @@ import qualified Data.Map                      as M
 
 data RoseTree a = RoseTree a [RoseTree a]
     deriving (Eq, Ord, Show)
+    deriving (Functor)
 
 
 datum :: RoseTree a -> a
