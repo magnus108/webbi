@@ -10,9 +10,6 @@ import           Debug.Trace
 import           Data.Maybe
 
 import           Data.Either.Extra
-import           Text.Blaze.Html5               ( (!) )
-import qualified Text.Blaze.Html5              as H
-import qualified Text.Blaze.Html5.Attributes   as A
 import           Text.Blaze.Html.Renderer.String
                                                 ( renderHtml )
 import           System.FilePath                ( splitPath
