@@ -1,7 +1,8 @@
 module Webbi.Utils.TreeZipper where
 
 import Webbi.Utils.Trie (Trie)
-import Webbi.Utils.RoseTree as RT
+import Webbi.Utils.RoseTree (RoseTree)
+import qualified Webbi.Utils.RoseTree as RT
 
 import Data.Maybe
 import Data.String
@@ -41,19 +42,19 @@ fromTrie root trie = fromRoseTree (RT.fromTrie root trie)
 
 
 down :: Eq a => a -> TreeZipper a -> Maybe (TreeZipper a)
-down x (TreeZipper (RoseTree parent items) bs) =
+down x (TreeZipper rt bs) =
     let
-        (ls, rs) = break (\item -> datum item == x) items
+        (ls, rs) = break (\item -> RT.datum item == x) (RT.children rt)
     in
         case rs of
-            y:ys -> Just (TreeZipper y (Context ls parent ys:bs))
+            y:ys -> Just (TreeZipper y (Context ls (RT.datum rt) ys:(bs)))
             _ -> Nothing
 
 
 up :: TreeZipper a -> Maybe (TreeZipper a)
 up (TreeZipper _ []) = Nothing
 up (TreeZipper item ((Context ls x rs):bs)) =
-    Just (TreeZipper (RoseTree x (ls <> [item] <> rs)) bs)
+    Just (TreeZipper (RT.RoseTree x (ls <> [item] <> rs)) bs)
 
 
 
@@ -73,11 +74,11 @@ lefts tz =
     in
         case prev of
                Nothing -> []
-               Just prev' -> prev' : (lefts prev')
+               Just prev' -> lefts prev' ++ [prev']
 
 
-childs :: Eq a => TreeZipper a -> [TreeZipper a]
-childs tz =
+children :: Eq a => TreeZipper a -> [TreeZipper a]
+children tz =
     let
         child = firstChild tz
     in
@@ -88,6 +89,7 @@ childs tz =
 forward :: Eq a => TreeZipper a -> Maybe (TreeZipper a)
 forward zipper =
     firstOf [ firstChild, nextSibling, nextSiblingOfAncestor ] zipper
+
 
 firstOf :: [(a -> Maybe b)] -> a -> Maybe b
 firstOf options v =
@@ -101,9 +103,9 @@ firstOf options v =
 
 firstChild :: Eq a => TreeZipper a -> Maybe (TreeZipper a)
 firstChild tz =
-    case children (toRoseTree tz) of
+    case RT.children (toRoseTree tz) of
         [] -> Nothing
-        c : cs -> down (datum c) tz
+        c : cs -> down (RT.datum c) tz
 
 
 rights' :: TreeZipper a -> [RoseTree a]
@@ -113,7 +115,7 @@ rights' (TreeZipper item ((Context ls x rs):bs)) = rs
 
 lefts' :: TreeZipper a -> [RoseTree a]
 lefts' (TreeZipper _ []) = []
-lefts' (TreeZipper item ((Context ls x rs):bs)) = ls
+lefts' (TreeZipper item ((Context ls x rs):bs)) = reverse ls
 
 
 nextSibling :: Eq a => TreeZipper a -> Maybe (TreeZipper a)
@@ -121,7 +123,7 @@ nextSibling tz =
     case rights' tz of
         [] -> Nothing
         next : rest ->
-            down (datum next) =<< up tz
+            down (RT.datum next) =<< up tz
 
 
 previousSibling :: Eq a => TreeZipper a -> Maybe (TreeZipper a)
@@ -129,7 +131,7 @@ previousSibling tz =
     case lefts' tz of
         [] -> Nothing
         prev : rest ->
-            down (datum prev) =<< up tz
+            down (RT.datum prev) =<< up tz
 
 
 nextSiblingOfAncestor :: Eq a => TreeZipper a -> Maybe (TreeZipper a)
@@ -145,14 +147,14 @@ nextSiblingOfAncestor tz =
 
 
 path :: TreeZipper String -> String
-path (TreeZipper rt []) = datum rt
+path (TreeZipper rt []) = RT.datum rt
 path tz = case up tz of
-            Nothing -> (datum (toRoseTree tz))
-            Just tz' -> path tz' ++ (datum (toRoseTree tz))
+            Nothing -> (RT.datum (toRoseTree tz))
+            Just tz' -> path tz' ++ (RT.datum (toRoseTree tz))
 
 
 name :: TreeZipper String -> String
-name = datum . toRoseTree
+name = RT.datum . toRoseTree
 
 
 showItem :: H.AttributeValue -> TreeZipper String -> H.Html
@@ -166,12 +168,12 @@ showItems color xs = mapM_ (showItem color) xs
 
 
 showChildren :: TreeZipper String -> H.Html
-showChildren = showItems "background: white" . childs
+showChildren = showItems "background: white" . children
 
 
 showLevel :: H.AttributeValue -> TreeZipper String -> H.Html
 showLevel color tz = do
-    showItems "background: blue" (lefts tz)
+    showItems "background: cyan" (lefts tz)
     showItem color tz
     showItems "background: green" (rights tz)
 
