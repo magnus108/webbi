@@ -6,6 +6,8 @@ import Webbi.Utils.RoseTree as RT
 import Data.Maybe
 import Data.String
 
+import Control.Comonad
+
 import           Text.Blaze.Html5               ( (!) )
 import qualified Text.Blaze.Html5              as H
 import qualified Text.Blaze.Html5.Attributes   as A
@@ -38,7 +40,7 @@ fromTrie :: String -> Trie String -> TreeZipper String
 fromTrie root trie = fromRoseTree (RT.fromTrie root trie)
 
 
-down :: (Show a, Eq a) => a -> TreeZipper a -> Maybe (TreeZipper a)
+down :: Eq a => a -> TreeZipper a -> Maybe (TreeZipper a)
 down x (TreeZipper (RoseTree parent items) bs) =
     let
         (ls, rs) = break (\item -> datum item == x) items
@@ -54,14 +56,92 @@ up (TreeZipper item ((Context ls x rs):bs)) =
     Just (TreeZipper (RoseTree x (ls <> [item] <> rs)) bs)
 
 
-lefts :: TreeZipper a -> [RoseTree a]
-lefts (TreeZipper _ []) = []
-lefts (TreeZipper item ((Context ls x rs):bs)) = ls
+
+rights :: Eq a => TreeZipper a -> [TreeZipper a]
+rights tz =
+    let
+        next = nextSibling tz
+    in
+        case next of
+               Nothing -> []
+               Just next' -> next' : (rights next')
+
+lefts :: Eq a => TreeZipper a -> [TreeZipper a]
+lefts tz =
+    let
+        prev = previousSibling tz
+    in
+        case prev of
+               Nothing -> []
+               Just prev' -> prev' : (lefts prev')
 
 
-rights :: TreeZipper a -> [RoseTree a]
-rights (TreeZipper _ []) = []
-rights (TreeZipper item ((Context ls x rs):bs)) = rs
+childs :: Eq a => TreeZipper a -> [TreeZipper a]
+childs tz =
+    let
+        child = firstChild tz
+    in
+        case child of
+               Nothing -> []
+               Just child' -> child' : rights child'
+
+forward :: Eq a => TreeZipper a -> Maybe (TreeZipper a)
+forward zipper =
+    firstOf [ firstChild, nextSibling, nextSiblingOfAncestor ] zipper
+
+firstOf :: [(a -> Maybe b)] -> a -> Maybe b
+firstOf options v =
+    case options of
+        [] -> Nothing
+        option : rest ->
+            case option v of
+                Just r -> Just r
+                Nothing -> firstOf rest v
+
+
+firstChild :: Eq a => TreeZipper a -> Maybe (TreeZipper a)
+firstChild tz =
+    case children (toRoseTree tz) of
+        [] -> Nothing
+        c : cs -> down (datum c) tz
+
+
+rights' :: TreeZipper a -> [RoseTree a]
+rights' (TreeZipper _ []) = []
+rights' (TreeZipper item ((Context ls x rs):bs)) = rs
+
+
+lefts' :: TreeZipper a -> [RoseTree a]
+lefts' (TreeZipper _ []) = []
+lefts' (TreeZipper item ((Context ls x rs):bs)) = ls
+
+
+nextSibling :: Eq a => TreeZipper a -> Maybe (TreeZipper a)
+nextSibling tz =
+    case rights' tz of
+        [] -> Nothing
+        next : rest ->
+            down (datum next) =<< up tz
+
+
+previousSibling :: Eq a => TreeZipper a -> Maybe (TreeZipper a)
+previousSibling tz =
+    case lefts' tz of
+        [] -> Nothing
+        prev : rest ->
+            down (datum prev) =<< up tz
+
+
+nextSiblingOfAncestor :: Eq a => TreeZipper a -> Maybe (TreeZipper a)
+nextSiblingOfAncestor tz =
+    case up tz of
+      Nothing -> Nothing
+      Just p ->
+          case nextSibling p of
+            Nothing ->
+                nextSiblingOfAncestor p
+            Just s ->
+                Just s
 
 
 path :: TreeZipper String -> String
@@ -86,29 +166,25 @@ showItems color xs = mapM_ (showItem color) xs
 
 
 showChildren :: TreeZipper String -> H.Html
-showChildren x = showItems "background: white" (catMaybes asTrees)
-    where childrens= children (toRoseTree x)
-          asTrees = fmap (\v -> down (datum v) x) childrens
+showChildren = showItems "background: white" . childs
 
 
 showLevel :: H.AttributeValue -> TreeZipper String -> H.Html
 showLevel color tz = do
-    let upp = fromJust $ up tz
-    let ls' = catMaybes $ fmap (\v -> down (datum v) upp) (lefts tz)
-    let rs' = catMaybes $ fmap (\v -> down (datum v) upp) (rights tz)
-    showItems "background: white" ls'
+    showItems "background: blue" (lefts tz)
     showItem color tz
-    showItems "background: white" rs'
+    showItems "background: green" (rights tz)
+
 
 showHierachy :: TreeZipper String -> H.Html
 showHierachy m = do
     case up m of
         Nothing -> return ()
-        Just parent ->
-                showHierachy parent
+        Just parent -> showHierachy parent
     H.div $ showLevel "background: orange" m
 
+
 showMenu :: TreeZipper String -> H.Html
-showMenu s = do
-    showHierachy s
-    H.div $ showChildren s
+showMenu tz = do
+    showHierachy tz
+    H.div $ showChildren tz
