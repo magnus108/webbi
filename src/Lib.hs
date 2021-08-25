@@ -28,9 +28,10 @@ import qualified Webbi.Menu                    as M
 
 
 compileCss :: Rules ()
-compileCss = match "**/css/*.hs" $ do
-    route $ setExtension "css"
-    compile $ getResourceString >>= withItemBody (unixFilter "runghc" [])
+compileCss = do
+    match "**css/*.hs" $ do
+        route $ setExtension "css"
+        compile $ getResourceString >>= withItemBody (unixFilter "runghc" [])
 
 
 compileContent :: Rules ()

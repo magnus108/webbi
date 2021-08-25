@@ -154,11 +154,16 @@ path tz = case up tz of
 
 
 name :: TreeZipper String -> String
-name = RT.datum . toRoseTree
+name tz = 
+    -- lookup translation instead
+    let
+        name' = RT.datum $ toRoseTree tz
+    in
+        if name' == "/" then "Home" else name'
 
 
 showItem :: H.AttributeValue -> TreeZipper String -> H.Html
-showItem color tz = H.a ! A.style color ! A.href (fromString link) $ H.toHtml text
+showItem color tz = H.li $ H.a ! A.style color ! A.href (fromString link) $ H.toHtml text
     where link = path tz
           text = name tz
 
@@ -168,11 +173,11 @@ showItems color xs = mapM_ (showItem color) xs
 
 
 showChildren :: TreeZipper String -> H.Html
-showChildren = showItems "background: white" . children
+showChildren = H.ul . showItems "background: white" . children
 
 
 showLevel :: H.AttributeValue -> TreeZipper String -> H.Html
-showLevel color tz = do
+showLevel color tz = H.ul $ do
     showItems "background: cyan" (lefts tz)
     showItem color tz
     showItems "background: green" (rights tz)
@@ -183,10 +188,10 @@ showHierachy m = do
     case up m of
         Nothing -> return ()
         Just parent -> showHierachy parent
-    H.div $ showLevel "background: orange" m
+    showLevel "background: orange" m
 
 
 showMenu :: TreeZipper String -> H.Html
 showMenu tz = do
     showHierachy tz
-    H.div $ showChildren tz
+    showChildren tz
