@@ -13,6 +13,8 @@ import           Text.Blaze.Html5               ( (!) )
 import qualified Text.Blaze.Html5              as H
 import qualified Text.Blaze.Html5.Attributes   as A
 
+import           System.FilePath                ( takeExtension )
+
 
 data Context a = Context [RoseTree a] a [RoseTree a]
     deriving (Show, Eq, Ord)
@@ -195,3 +197,38 @@ showMenu :: TreeZipper String -> H.Html
 showMenu tz = do
     showHierachy tz
     showChildren tz
+
+
+--------------------------------------------------------------------------------
+
+foldup :: TreeZipper String -> [String]
+foldup tz = links ++ rest
+    where 
+        links = filter (\x -> takeExtension x == ".css") $ fmap path (children tz)
+        rest = case up tz of
+                    Nothing -> []
+                    Just parent -> foldup parent
+
+
+readCss :: TreeZipper String -> [TreeZipper String]
+readCss tz =  children tz
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

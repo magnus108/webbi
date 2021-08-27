@@ -15,6 +15,8 @@ import           Text.Blaze.Html.Renderer.String
 import           System.FilePath                ( splitPath
                                                 , dropFileName
                                                 , takeBaseName
+                                                , replaceFileName
+                                                , takeDirectory
                                                 , (</>)
                                                 )
 
@@ -26,48 +28,93 @@ import qualified Webbi.Utils.TreeZipper        as TZ
 
 import qualified Webbi.Menu                    as M
 
-
-compileCss :: Rules ()
-compileCss = do
-    match "**css/*.hs" $ do
-        route $ setExtension "css"
-        compile $ getResourceString >>= withItemBody (unixFilter "runghc" [])
+import Data.String
+import           Text.Blaze.Html5               ( (!) )
+import qualified Text.Blaze.Html5              as H
+import qualified Text.Blaze.Html5.Attributes   as A
 
 
-compileContent :: Rules ()
-compileContent = do
-    compileMenu
-    compilePosts
-
+styles :: Pattern
+styles = "**css/*.hs"
 
 content :: Pattern
 content = "**.md"
 
 
+compileCss :: Rules ()
+compileCss = do
+    compileClay
+    compileStyles
+
+
+compileClay :: Rules ()
+compileClay = do
+    match styles $ do
+        route $ setExtension "css"
+        compile $ getResourceString >>= withItemBody (unixFilter "runghc" [])
+
+
+compileStyles :: Rules ()
+compileStyles = do
+    match styles $ do
+        version "css" $ compile $ do
+            item  <- setVersion Nothing <$> getUnderlying
+            route <- getRoute item
+            case route of
+                Nothing -> noResult "No css item"
+                Just r  -> makeItem r
+
+
+compileContent :: Rules ()
+compileContent = do
+    compileMenu
+    compileMarkdown
+
+
 compileMenu :: Rules ()
-compileMenu = match content $ do
-    version "menu" $ compile $ do
-        item  <- setVersion Nothing <$> getUnderlying
-        route <- getRoute item
-        case route of
-            Nothing -> noResult "No menu item"
-            Just r  -> makeItem r
+compileMenu =
+    match content $ do
+        version "menu" $ compile $ do
+            item  <- setVersion Nothing <$> getUnderlying
+            route <- getRoute item
+            case route of
+                Nothing -> noResult "No menu item"
+                Just r  -> makeItem r
 
 
-compilePosts :: Rules ()
-compilePosts = match content $ do
+compileMarkdown :: Rules ()
+compileMarkdown = match content $ do
     route $ setExtension "html"
     compile $ do
-        ctx <- postContext
+        ctx <- contentContext
         pandocCompiler
-            >>= loadAndApplyTemplate "templates/post.html"    ctx
+            >>= loadAndApplyTemplate "templates/content.html"    ctx
             >>= loadAndApplyTemplate "templates/default.html" ctx
             >>= relativizeUrls
 
-postContext :: Compiler (Context String)
-postContext = do
+
+contentContext :: Compiler (Context String)
+contentContext = do
     menu <- getMenu
-    return $ constField "menu" menu <> defaultContext
+    css <- getCss
+    return $ constField "menu" menu <> constField "css" css <> defaultContext
+
+
+getCss :: Compiler String
+getCss = do
+    css  <- M.fromList' <$> fmap itemBody <$> loadAll (fromVersion $ Just "css")
+    route <- getRoute =<< getUnderlying
+
+    case route of
+        Nothing -> noResult "No current route"
+        Just r  -> do
+            traceShowM "SKAL IKKE VÆRE MENU"
+            let (Menu m) = M.navigateToParent r css
+            traceShowM (m)
+            traceShowM (TZ.foldup m)
+            return $ renderHtml $  mapM_ tolink (TZ.foldup m)
+
+tolink x = H.link ! A.rel "stylesheet" ! A.href (fromString x)
 
 getMenu :: Compiler String
 getMenu = do
@@ -78,9 +125,6 @@ getMenu = do
         Nothing -> noResult "No current route"
         Just r  -> do
             let m = M.navigateTo r menu
-            traceShowM "mmmmm"
-            traceShowM r
-            traceShowM m
             return $ renderHtml $ M.showMenu m
 
 

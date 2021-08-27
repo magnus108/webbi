@@ -1,6 +1,7 @@
 # webbi
 
 - lav css
-- læs alle posts og projects
+- flyt html til menu
+- clean routes
 - fix cv
 - lav post
