@@ -67,6 +67,9 @@ navigateToParent route menu = find routes menu
     routes = splitPath route
     find [] m = m
     find (x : []) m = m
-    find (x : xs) (Menu m) = find xs (Menu (fromJust (TZ.down x m)))
+    find (x : xs) (Menu m) =
+        case TZ.down x m of
+            Nothing -> (Menu m)
+            Just y -> find xs (Menu y)
 
 

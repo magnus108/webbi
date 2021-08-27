@@ -38,7 +38,7 @@ styles :: Pattern
 styles = "**css/*.hs"
 
 content :: Pattern
-content = "**.md"
+content = "**index.md"
 
 
 compileCss :: Rules ()
