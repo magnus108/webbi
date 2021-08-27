@@ -7,7 +7,7 @@ import qualified Data.Map                      as M
 data Trie a = Trie
     { exists :: Bool
     , map :: M.Map a (Trie a)
-    } deriving Show
+    } deriving (Show, Eq)
 
 
 instance Ord a => Semigroup (Trie a) where

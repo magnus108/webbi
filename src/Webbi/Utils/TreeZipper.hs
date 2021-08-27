@@ -13,7 +13,7 @@ import           Text.Blaze.Html5               ( (!) )
 import qualified Text.Blaze.Html5              as H
 import qualified Text.Blaze.Html5.Attributes   as A
 
-import           System.FilePath                ( takeExtension )
+import           System.FilePath                ( takeExtension, dropTrailingPathSeparator)
 
 
 data Context a = Context [RoseTree a] a [RoseTree a]
@@ -159,7 +159,8 @@ name :: TreeZipper String -> String
 name tz = 
     -- lookup translation instead
     let
-        name' = RT.datum $ toRoseTree tz
+        children' = children tz
+        name' = if children' == [] then dropTrailingPathSeparator (RT.datum (toRoseTree tz)) else RT.datum $ toRoseTree tz
     in
         if name' == "/" then "Home" else name'
 
