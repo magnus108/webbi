@@ -20,5 +20,10 @@ empty :: Trie a
 empty = Trie False M.empty
 
 
-fromList :: (a -> Trie b -> Trie b) -> [a] -> Trie b
-fromList f = foldr f empty
+fromList :: (Trie b -> a -> Trie b) -> [a] -> Trie b
+fromList f = foldl f empty
+
+
+insert :: Trie String -> [String] -> Trie String
+insert (Trie _ m) [] = Trie True m
+insert (Trie b m) (x:xs) = Trie b $ M.insertWith (<>) x (insert empty xs) m

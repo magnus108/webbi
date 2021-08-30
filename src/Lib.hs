@@ -27,6 +27,7 @@ import qualified Webbi.Utils.RoseTree          as RT
 import qualified Webbi.Utils.TreeZipper        as TZ
 
 import qualified Webbi.Menu                    as M
+import qualified Webbi.Css                    as Css
 
 import Data.String
 import           Text.Blaze.Html5               ( (!) )
@@ -39,6 +40,10 @@ styles = "**css/*.hs"
 
 content :: Pattern
 content = "**index.md"
+
+
+compileTemplates :: Rules ()
+compileTemplates = match "templates/*" $ compile templateBodyCompiler
 
 
 compileCss :: Rules ()
@@ -97,37 +102,31 @@ contentContext :: Compiler (Context String)
 contentContext = do
     menu <- getMenu
     css <- getCss
-    return $ constField "menu" menu <> constField "css" css <> field "title" (return . TZ.title . toFilePath . itemIdentifier) <> defaultContext
+    return $ constField "menu" menu
+           <> constField "css" css
+           <> field "title" (return . TZ.title . toFilePath . itemIdentifier)
+           <> defaultContext
 
 
 
 getCss :: Compiler String
 getCss = do
-    css  <- M.fromList' <$> fmap itemBody <$> loadAll (fromVersion $ Just "css")
+    (Css.Css css) <- Css.fromList <$> fmap itemBody <$> loadAll (fromVersion $ Just "css")
     route <- getRoute =<< getUnderlying
-
     case route of
         Nothing -> noResult "No current route"
         Just r  -> do
-            traceShowM "SKAL IKKE VÆRE MENU"
-            let (Menu m) = M.navigateToParent r css
-            traceShowM (m)
-            traceShowM (TZ.foldup m)
-            return $ renderHtml $  mapM_ tolink (TZ.foldup m)
+            let css' = TZ.navigateTo r css
+            return $ renderHtml $ Css.showCss (Css.Css css')
 
-tolink x = H.link ! A.rel "stylesheet" ! A.href (fromString x)
 
 getMenu :: Compiler String
 getMenu = do
-    menu  <- M.fromList <$> fmap itemBody <$> loadAll (fromVersion $ Just "menu")
+    (Menu menu) <- M.fromList <$> fmap itemBody <$> loadAll (fromVersion $ Just "menu")
     route <- getRoute =<< getUnderlying
-
     case route of
         Nothing -> noResult "No current route"
         Just r  -> do
-            let m = M.navigateTo r menu
-            return $ renderHtml $ M.showMenu m
-
-
-compileTemplates :: Rules ()
-compileTemplates = match "templates/*" $ compile templateBodyCompiler
+            let m = TZ.navigateToParent r menu
+            traceShowM m
+            return $ renderHtml $ M.showMenu (Menu m)

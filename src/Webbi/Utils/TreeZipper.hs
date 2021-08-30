@@ -1,5 +1,6 @@
 module Webbi.Utils.TreeZipper where
 
+import Debug.Trace
 import           Data.Char
 import Webbi.Utils.Trie (Trie)
 import Webbi.Utils.RoseTree (RoseTree)
@@ -8,13 +9,14 @@ import qualified Webbi.Utils.RoseTree as RT
 import Data.Maybe
 import Data.String
 
+import Control.Monad
 import Control.Comonad
 
 import           Text.Blaze.Html5               ( (!) )
 import qualified Text.Blaze.Html5              as H
 import qualified Text.Blaze.Html5.Attributes   as A
 
-import           System.FilePath                ( takeExtension, dropTrailingPathSeparator, splitPath )
+import           System.FilePath                ( takeFileName, takeExtension, dropTrailingPathSeparator, splitPath )
 
 
 data Context a = Context [RoseTree a] a [RoseTree a]
@@ -149,6 +151,29 @@ nextSiblingOfAncestor tz =
                 Just s
 
 
+navigateToParent :: FilePath -> TreeZipper FilePath -> TreeZipper FilePath
+navigateToParent route item = find routes item
+  where
+    routes = splitPath route
+    find [] m = m
+    find (x : []) m = m
+    find (x : xs) m =
+        case (down x m) of
+            Nothing -> m
+            Just y -> find xs y
+
+navigateTo :: FilePath -> TreeZipper FilePath -> TreeZipper FilePath
+navigateTo route item = find routes item
+  where
+    routes = splitPath route
+    find [] m = m
+    find (x : xs) m =
+        case (down x m) of
+            Nothing -> m
+            Just y -> find xs y
+
+
+
 path :: TreeZipper String -> String
 path (TreeZipper rt []) = RT.datum rt
 path tz = case up tz of
@@ -163,6 +188,7 @@ title y = map toUpper $ title' (splitPath y)
     where
         title' (x : []) = x
         title' (x : ["index.md"]) = x --- må ikke stå index.md her
+        title' (x : ["index.html"]) = x --- må ikke stå index.md her
         title' (x : xs) = title' xs
 
 
@@ -171,7 +197,7 @@ showItem color tz = H.li $ H.a ! A.style color ! A.href (fromString link) $ H.to
     where link = path tz
           text' = title (RT.datum (toRoseTree tz))
           children' = children tz
-          text = if children' == [] then dropTrailingPathSeparator text' else text'
+          text = if length children' == 1 then dropTrailingPathSeparator text' else text'
 
 
 
@@ -180,14 +206,15 @@ showItems color xs = mapM_ (showItem color) xs
 
 
 showChildren :: TreeZipper String -> H.Html
-showChildren = H.ul . showItems "background: white" . children
+showChildren = H.ul . showItems "background: white" . filter (\x -> takeFileName  (RT.datum (toRoseTree x)) /= "index.html") . children
 
 
 showLevel :: H.AttributeValue -> TreeZipper String -> H.Html
 showLevel color tz = H.ul $ do
-    showItems "background: cyan" (lefts tz)
-    showItem color tz
-    showItems "background: green" (rights tz)
+    showItems "background: cyan" $ filter (\x -> takeFileName  (RT.datum (toRoseTree x)) /= "index.html") (lefts tz)
+    let b = takeFileName  (RT.datum (toRoseTree tz)) /= "index.html"
+    when b (showItem color tz)
+    showItems "background: green" $filter (\x -> takeFileName  (RT.datum (toRoseTree x)) /= "index.html")  (rights tz)
 
 
 showHierachy :: TreeZipper String -> H.Html
@@ -209,7 +236,7 @@ showMenu tz = do
 foldup :: TreeZipper String -> [String]
 foldup tz = links ++ rest
     where 
-        links = filter (\x -> takeExtension x == ".css") $ fmap path (children tz)
+        links = filter (\x -> takeExtension x == ".css") $ fmap path (concat (fmap children (children tz)))
         rest = case up tz of
                     Nothing -> []
                     Just parent -> foldup parent
