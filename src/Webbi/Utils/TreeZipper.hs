@@ -1,5 +1,6 @@
 module Webbi.Utils.TreeZipper where
 
+import           Data.Char
 import Webbi.Utils.Trie (Trie)
 import Webbi.Utils.RoseTree (RoseTree)
 import qualified Webbi.Utils.RoseTree as RT
@@ -13,7 +14,7 @@ import           Text.Blaze.Html5               ( (!) )
 import qualified Text.Blaze.Html5              as H
 import qualified Text.Blaze.Html5.Attributes   as A
 
-import           System.FilePath                ( takeExtension, dropTrailingPathSeparator)
+import           System.FilePath                ( takeExtension, dropTrailingPathSeparator, splitPath )
 
 
 data Context a = Context [RoseTree a] a [RoseTree a]
@@ -155,20 +156,23 @@ path tz = case up tz of
             Just tz' -> path tz' ++ (RT.datum (toRoseTree tz))
 
 
-name :: TreeZipper String -> String
-name tz = 
-    -- lookup translation instead
-    let
-        children' = children tz
-        name' = if children' == [] then dropTrailingPathSeparator (RT.datum (toRoseTree tz)) else RT.datum $ toRoseTree tz
-    in
-        if name' == "/" then "Home" else name'
+
+title :: FilePath -> String
+title "/" =  "HOME"
+title y = map toUpper $ title' (splitPath y)
+    where
+        title' (x : []) = x
+        title' (x : ["index.md"]) = x --- må ikke stå index.md her
+        title' (x : xs) = title' xs
 
 
 showItem :: H.AttributeValue -> TreeZipper String -> H.Html
 showItem color tz = H.li $ H.a ! A.style color ! A.href (fromString link) $ H.toHtml text
     where link = path tz
-          text = name tz
+          text' = title (RT.datum (toRoseTree tz))
+          children' = children tz
+          text = if children' == [] then dropTrailingPathSeparator text' else text'
+
 
 
 showItems :: H.AttributeValue -> [TreeZipper String] -> H.Html

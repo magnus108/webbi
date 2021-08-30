@@ -97,7 +97,8 @@ contentContext :: Compiler (Context String)
 contentContext = do
     menu <- getMenu
     css <- getCss
-    return $ constField "menu" menu <> constField "css" css <> defaultContext
+    return $ constField "menu" menu <> constField "css" css <> field "title" (return . TZ.title . toFilePath . itemIdentifier) <> defaultContext
+
 
 
 getCss :: Compiler String
