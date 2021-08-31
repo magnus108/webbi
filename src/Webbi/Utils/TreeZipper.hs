@@ -3,6 +3,7 @@ module Webbi.Utils.TreeZipper where
 import Debug.Trace
 import           Data.Char
 import Webbi.Utils.Trie (Trie)
+import qualified Webbi.Utils.Trie as T
 import Webbi.Utils.RoseTree (RoseTree)
 import qualified Webbi.Utils.RoseTree as RT
 
@@ -46,6 +47,10 @@ fromTrie :: String -> Trie String -> TreeZipper String
 fromTrie root trie = fromRoseTree (RT.fromTrie root trie)
 
 
+fromList :: [FilePath] -> TreeZipper FilePath
+fromList = fromTrie "/" . T.fromList T.insert . fmap splitPath
+
+
 down :: Eq a => a -> TreeZipper a -> Maybe (TreeZipper a)
 down x (TreeZipper rt bs) =
     let
@@ -81,6 +86,9 @@ lefts tz =
                Nothing -> []
                Just prev' -> lefts prev' ++ [prev']
 
+
+leafs :: Eq a => TreeZipper a -> [TreeZipper a]
+leafs = filter (isNothing . firstChild) . children
 
 children :: Eq a => TreeZipper a -> [TreeZipper a]
 children tz =
@@ -229,23 +237,6 @@ showMenu :: TreeZipper String -> H.Html
 showMenu tz = do
     showHierachy tz
     showChildren tz
-
-
---------------------------------------------------------------------------------
-
-foldup :: TreeZipper String -> [String]
-foldup tz = links ++ rest
-    where 
-        links = filter (\x -> takeExtension x == ".css") $ fmap path (concat (fmap children (children tz)))
-        rest = case up tz of
-                    Nothing -> []
-                    Just parent -> foldup parent
-
-
-readCss :: TreeZipper String -> [TreeZipper String]
-readCss tz =  children tz
-
-
 
 
 

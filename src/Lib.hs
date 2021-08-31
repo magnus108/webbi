@@ -111,22 +111,22 @@ contentContext = do
 
 getCss :: Compiler String
 getCss = do
-    (Css.Css css) <- Css.fromList <$> fmap itemBody <$> loadAll (fromVersion $ Just "css")
     route <- getRoute =<< getUnderlying
     case route of
         Nothing -> noResult "No current route"
         Just r  -> do
-            let css' = TZ.navigateTo r css
-            return $ renderHtml $ Css.showCss (Css.Css css')
+            items <- loadAll $ fromVersion $ Just "css"
+            let css = Css.fromList $ fmap itemBody items
+            return $ renderHtml $ Css.showCss r css
 
 
 getMenu :: Compiler String
 getMenu = do
-    (Menu menu) <- M.fromList <$> fmap itemBody <$> loadAll (fromVersion $ Just "menu")
     route <- getRoute =<< getUnderlying
     case route of
         Nothing -> noResult "No current route"
         Just r  -> do
+            items <- loadAll $ fromVersion $ Just "menu"
+            let (Menu menu) = M.fromList $ fmap itemBody items
             let m = TZ.navigateToParent r menu
-            traceShowM m
             return $ renderHtml $ M.showMenu (Menu m)

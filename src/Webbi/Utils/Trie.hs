@@ -24,6 +24,6 @@ fromList :: (Trie b -> a -> Trie b) -> [a] -> Trie b
 fromList f = foldl f empty
 
 
-insert :: Trie String -> [String] -> Trie String
+insert :: Ord a => Trie a -> [a] -> Trie a
 insert (Trie _ m) [] = Trie True m
 insert (Trie b m) (x:xs) = Trie b $ M.insertWith (<>) x (insert empty xs) m

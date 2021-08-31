@@ -24,8 +24,7 @@ data Menu = Menu (TZ.TreeZipper FilePath)
 
 
 fromList :: [FilePath] -> Menu
-fromList = Menu . TZ.fromTrie "/" . T.fromList T.insert . fmap splitPath
-
+fromList = Menu . TZ.fromList
 
 
 showMenu :: Menu -> H.Html

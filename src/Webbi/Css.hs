@@ -30,10 +30,21 @@ data Css = Css (TZ.TreeZipper FilePath)
 
 
 fromList :: [FilePath] -> Css
-fromList = Css . TZ.fromTrie "/" . T.fromList T.insert . fmap splitPath
+fromList = Css . TZ.fromList
 
 
-showCss :: Css -> H.Html
-showCss (Css x) = mapM_ link (TZ.foldup x)
+showCss :: FilePath -> Css -> H.Html
+showCss r (Css css) = mapM_ link (findCss (Css css'))
     where
+        css' = TZ.navigateTo r css
         link y = H.link ! A.rel "stylesheet" ! A.href (fromString y)
+
+
+findCss :: Css -> [String]
+findCss (Css tz) = links ++ rest
+    where 
+        links = fmap TZ.path (TZ.leafs (TZ.navigateTo "css/" tz))
+        rest = case TZ.up tz of
+                    Nothing -> []
+                    Just parent -> findCss (Css parent)
+
