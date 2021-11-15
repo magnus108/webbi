@@ -1,7 +1,7 @@
 module Webbi.Menu
     ( Menu(..)
-    , fromList
     , showMenu
+    , fromTreeZipper
     )
 where
 
@@ -23,8 +23,8 @@ data Menu = Menu (TZ.TreeZipper FilePath)
     deriving (Show)
 
 
-fromList :: [FilePath] -> Menu
-fromList = Menu . TZ.fromList
+fromTreeZipper :: (TZ.TreeZipper FilePath) -> Menu
+fromTreeZipper  = Menu
 
 
 showMenu :: Menu -> H.Html

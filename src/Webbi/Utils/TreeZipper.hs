@@ -4,7 +4,8 @@ import Debug.Trace
 import           Data.Char
 import Webbi.Utils.Trie (Trie)
 import qualified Webbi.Utils.Trie as T
-import Webbi.Utils.RoseTree (RoseTree)
+import qualified Webbi.Utils.Free as F
+import Webbi.Utils.RoseTree (RoseTree,Forest(..))
 import qualified Webbi.Utils.RoseTree as RT
 
 import Data.Maybe
@@ -24,6 +25,9 @@ data Context a = Context [RoseTree a] a [RoseTree a]
     deriving (Show, Eq, Ord)
     deriving (Functor)
 
+data Root a = Root [TreeZipper a]
+    deriving (Show, Eq, Ord)
+    deriving (Functor)
 
 data TreeZipper a = TreeZipper (RoseTree a) [Context a]
     deriving (Show, Eq, Ord)
@@ -43,12 +47,16 @@ fromRoseTree :: RoseTree a -> TreeZipper a
 fromRoseTree x = TreeZipper x []
 
 
-fromTrie :: String -> Trie String -> TreeZipper String
-fromTrie root trie = fromRoseTree (RT.fromTrie root trie)
+fromForest :: Forest a -> Root a
+fromForest (Forest xs) = Root (fmap fromRoseTree xs)
 
 
-fromList :: [FilePath] -> TreeZipper FilePath
-fromList = fromTrie "/" . T.fromList T.insert . fmap splitPath
+fromTrie :: Trie String -> Root String
+fromTrie trie = fromForest (RT.fromTrie trie)
+
+
+fromList :: [FilePath] -> Root FilePath
+fromList = fromTrie . T.fromList T.insert . fmap splitPath
 
 
 down :: Eq a => a -> TreeZipper a -> Maybe (TreeZipper a)
@@ -59,6 +67,7 @@ down x (TreeZipper rt bs) =
         case rs of
             y:ys -> Just (TreeZipper y (Context ls (RT.datum rt) ys:(bs)))
             _ -> Nothing
+
 
 
 up :: TreeZipper a -> Maybe (TreeZipper a)
@@ -182,6 +191,18 @@ navigateTo route item = find routes item
 
 
 
+fromRootNavigateTo :: FilePath -> Root FilePath -> Maybe (TreeZipper FilePath)
+fromRootNavigateTo route item = Nothing --find routes item
+    {-where
+    routes = splitPath route
+    find [] m = m
+    find (x : xs) m =
+        case (down x m) of
+            Nothing -> m
+            Just y -> find xs y
+            -}
+
+
 path :: TreeZipper String -> String
 path (TreeZipper rt []) = RT.datum rt
 path tz = case up tz of
@@ -190,20 +211,10 @@ path tz = case up tz of
 
 
 
-title :: FilePath -> String
-title "/" =  "HOME"
-title y = map toUpper $ title' (splitPath y)
-    where
-        title' (x : []) = x
-        title' (x : ["index.md"]) = x --- må ikke stå index.md her
-        title' (x : ["index.html"]) = x --- må ikke stå index.md her
-        title' (x : xs) = title' xs
-
-
 showItem :: H.AttributeValue -> TreeZipper String -> H.Html
 showItem color tz = H.li $ H.a ! A.style color ! A.href (fromString link) $ H.toHtml text
     where link = path tz
-          text' = title (RT.datum (toRoseTree tz))
+          text' = F.title (RT.datum (toRoseTree tz))
           children' = children tz
           text = if length children' == 1 then dropTrailingPathSeparator text' else text'
 
@@ -237,21 +248,3 @@ showMenu :: TreeZipper String -> H.Html
 showMenu tz = do
     showHierachy tz
     showChildren tz
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

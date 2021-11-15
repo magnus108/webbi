@@ -11,9 +11,9 @@ data Trie a = Trie
 
 
 instance Ord a => Semigroup (Trie a) where
-    (Trie True m1) <> (Trie _ m2) = Trie True (m1 <> m2)
-    (Trie _ m1) <> (Trie True m2) = Trie True (m1 <> m2)
-    (Trie _ m1) <> (Trie _ m2) = Trie False (m1 <> m2)
+    (Trie True m1) <> (Trie _    m2) = Trie True (m1 <> m2)
+    (Trie _    m1) <> (Trie True m2) = Trie True (m1 <> m2)
+    (Trie _    m1) <> (Trie _    m2) = Trie False (m1 <> m2)
 
 
 empty :: Trie a
@@ -25,5 +25,5 @@ fromList f = foldl f empty
 
 
 insert :: Ord a => Trie a -> [a] -> Trie a
-insert (Trie _ m) [] = Trie True m
-insert (Trie b m) (x:xs) = Trie b $ M.insertWith (<>) x (insert empty xs) m
+insert (Trie _ m) []       = Trie True m
+insert (Trie b m) (x : xs) = Trie b $ M.insertWith (<>) x (insert empty xs) m

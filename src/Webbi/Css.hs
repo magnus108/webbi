@@ -1,6 +1,6 @@
 module Webbi.Css
     ( Css(..)
-    , fromList
+    , fromTreeZipper
     , showCss
     )
 where
@@ -12,7 +12,7 @@ import           Data.Maybe
 import qualified Text.Blaze.Html5              as H
 
 import qualified Webbi.Utils.TreeZipper        as TZ
-import qualified Webbi.Utils.RoseTree          as R
+import qualified Webbi.Utils.RoseTree          as RT
 import qualified Webbi.Utils.Trie              as T
 
 
@@ -28,23 +28,15 @@ data Css = Css (TZ.TreeZipper FilePath)
     deriving (Show)
 
 
+fromTreeZipper :: (TZ.TreeZipper FilePath) -> Css
+fromTreeZipper  = Css
 
-fromList :: [FilePath] -> Css
-fromList = Css . TZ.fromList
 
-
-showCss :: FilePath -> Css -> H.Html
-showCss r (Css css) = mapM_ link (findCss (Css css'))
+showCss :: Css -> H.Html
+showCss (Css tz) = mapM_ link (links =<< parents tz)
     where
-        css' = TZ.navigateTo r css
+        links tz = fmap TZ.path $ TZ.leafs $ TZ.navigateTo "css/" tz
         link y = H.link ! A.rel "stylesheet" ! A.href (fromString y)
-
-
-findCss :: Css -> [String]
-findCss (Css tz) = links ++ rest
-    where 
-        links = fmap TZ.path (TZ.leafs (TZ.navigateTo "css/" tz))
-        rest = case TZ.up tz of
-                    Nothing -> []
-                    Just parent -> findCss (Css parent)
-
+        parents tz = tz : case TZ.up tz of
+                                        Nothing -> []
+                                        Just p -> parents p

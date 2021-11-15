@@ -25,11 +25,12 @@ import           Hakyll
 import           Webbi.Menu                     ( Menu(..) )
 import qualified Webbi.Utils.RoseTree          as RT
 import qualified Webbi.Utils.TreeZipper        as TZ
+import qualified Webbi.Utils.Free              as F
 
 import qualified Webbi.Menu                    as M
-import qualified Webbi.Css                    as Css
+import qualified Webbi.Css                     as Css
 
-import Data.String
+import           Data.String
 import           Text.Blaze.Html5               ( (!) )
 import qualified Text.Blaze.Html5              as H
 import qualified Text.Blaze.Html5.Attributes   as A
@@ -77,14 +78,13 @@ compileContent = do
 
 
 compileMenu :: Rules ()
-compileMenu =
-    match content $ do
-        version "menu" $ compile $ do
-            item  <- setVersion Nothing <$> getUnderlying
-            route <- getRoute item
-            case route of
-                Nothing -> noResult "No menu item"
-                Just r  -> makeItem r
+compileMenu = match content $ do
+    version "menu" $ compile $ do
+        item  <- setVersion Nothing <$> getUnderlying
+        route <- getRoute item
+        case route of
+            Nothing -> noResult "No menu item"
+            Just r  -> makeItem r
 
 
 compileMarkdown :: Rules ()
@@ -93,7 +93,7 @@ compileMarkdown = match content $ do
     compile $ do
         ctx <- contentContext
         pandocCompiler
-            >>= loadAndApplyTemplate "templates/content.html"    ctx
+            >>= loadAndApplyTemplate "templates/content.html" ctx
             >>= loadAndApplyTemplate "templates/default.html" ctx
             >>= relativizeUrls
 
@@ -101,11 +101,12 @@ compileMarkdown = match content $ do
 contentContext :: Compiler (Context String)
 contentContext = do
     menu <- getMenu
-    css <- getCss
-    return $ constField "menu" menu
-           <> constField "css" css
-           <> field "title" (return . TZ.title . toFilePath . itemIdentifier)
-           <> defaultContext
+    css  <- getCss
+    return
+        $  constField "menu" menu
+        <> constField "css"  css
+        <> field "title" (return . F.title . toFilePath . itemIdentifier)
+        <> defaultContext
 
 
 
@@ -116,8 +117,8 @@ getCss = do
         Nothing -> noResult "No current route"
         Just r  -> do
             items <- loadAll $ fromVersion $ Just "css"
-            let css = Css.fromList $ fmap itemBody items
-            return $ renderHtml $ Css.showCss r css
+            let css = fmap Css.fromTreeZipper $ TZ.fromRootNavigateTo r $ TZ.fromList $ fmap itemBody items
+            return $ renderHtml $ Css.showCss $ fromJust css
 
 
 getMenu :: Compiler String
@@ -127,6 +128,5 @@ getMenu = do
         Nothing -> noResult "No current route"
         Just r  -> do
             items <- loadAll $ fromVersion $ Just "menu"
-            let (Menu menu) = M.fromList $ fmap itemBody items
-            let m = TZ.navigateToParent r menu
-            return $ renderHtml $ M.showMenu (Menu m)
+            let menu = fmap M.fromTreeZipper $ TZ.fromRootNavigateTo r $ TZ.fromList $ fmap itemBody items
+            return $ renderHtml $ M.showMenu $ fromJust menu

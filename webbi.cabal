@@ -28,6 +28,7 @@ library
       Lib
       Webbi.Css
       Webbi.Menu
+      Webbi.Utils.Free
       Webbi.Utils.RoseTree
       Webbi.Utils.TreeZipper
       Webbi.Utils.Trie
