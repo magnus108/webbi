@@ -24,17 +24,16 @@ import qualified Text.Blaze.Html5.Attributes   as A
 
 
 
-data Css = Css (TZ.TreeZipper FilePath)
+data Css = Css [TZ.TreeZipper FilePath]
     deriving (Show)
 
 
-fromTreeZipper :: (TZ.TreeZipper FilePath) -> Css
+fromTreeZipper :: [TZ.TreeZipper FilePath] -> Css
 fromTreeZipper  = Css
 
 
-showCss :: Maybe Css -> H.Html
-showCss Nothing = return ()
-showCss (Just (Css tz)) = mapM_ link (links =<< parents tz)
+showCss :: Css -> H.Html
+showCss (Css tz) = mapM_ (mapM_ link) (fmap links =<< (fmap parents tz))
     where
         links tz = fmap TZ.path $ TZ.leafs $ TZ.navigateTo "css/" tz
         link y = H.link ! A.rel "stylesheet" ! A.href (fromString y)

@@ -118,7 +118,7 @@ getCss = do
         Just r  -> do
             items <- loadAll $ fromVersion $ Just "css"
             let css =
-                    fmap Css.fromTreeZipper
+                    Css.fromTreeZipper
                         $ TZ.fromRootNavigateTo r
                         $ TZ.fromList
                         $ fmap itemBody items
@@ -133,7 +133,7 @@ getMenu = do
         Just r  -> do
             items <- loadAll $ fromVersion $ Just "menu"
             let menu =
-                    fmap M.fromTreeZipper
+                    M.fromTreeZipper
                         $ TZ.fromRootNavigateTo r
                         $ TZ.fromList
                         $ fmap itemBody items

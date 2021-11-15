@@ -25,7 +25,7 @@ data Context a = Context [RoseTree a] a [RoseTree a]
     deriving (Show, Eq, Ord)
     deriving (Functor)
 
-data Root a = Root [RoseTree a]
+data Root a = Root [TreeZipper a]
     deriving (Show, Eq, Ord)
     deriving (Functor)
 
@@ -48,7 +48,7 @@ fromRoseTree x = TreeZipper x []
 
 
 fromForest :: Forest a -> Root a
-fromForest (Forest xs) = Root xs
+fromForest (Forest xs) = Root (fmap fromRoseTree xs)
 
 
 fromTrie :: Trie String -> Root String
@@ -191,18 +191,10 @@ navigateTo route item = find routes item
 
 
 
-fromRootNavigateTo :: FilePath -> Root FilePath -> Maybe (TreeZipper FilePath)
-fromRootNavigateTo route item = Nothing --find routes (Root items)
-    {-
-  where
-       
-    routes = splitPath route
-    find [] m = Just m
-    find (x : xs) m =
-        case (down x m) of
-            Nothing -> Nothing
-            Just y -> find xs y
-            -}
+fromRootNavigateTo :: FilePath -> Root FilePath -> [TreeZipper FilePath]
+fromRootNavigateTo route (Root items) = r
+    where
+        r = fmap (navigateTo route) items
 
 
 path :: TreeZipper String -> String
@@ -246,7 +238,7 @@ showHierachy m = do
     showLevel "background: orange" m
 
 
-showMenu :: TreeZipper String -> H.Html
+showMenu :: [TreeZipper String] -> H.Html
 showMenu tz = do
-    showHierachy tz
-    showChildren tz
+    mapM_ showHierachy tz
+    mapM_ showChildren tz
