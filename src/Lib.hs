@@ -117,8 +117,12 @@ getCss = do
         Nothing -> noResult "No current route"
         Just r  -> do
             items <- loadAll $ fromVersion $ Just "css"
-            let css = fmap Css.fromTreeZipper $ TZ.fromRootNavigateTo r $ TZ.fromList $ fmap itemBody items
-            return $ renderHtml $ Css.showCss $ fromJust css
+            let css =
+                    fmap Css.fromTreeZipper
+                        $ TZ.fromRootNavigateTo r
+                        $ TZ.fromList
+                        $ fmap itemBody items
+            return $ renderHtml $ Css.showCss css
 
 
 getMenu :: Compiler String
@@ -128,5 +132,9 @@ getMenu = do
         Nothing -> noResult "No current route"
         Just r  -> do
             items <- loadAll $ fromVersion $ Just "menu"
-            let menu = fmap M.fromTreeZipper $ TZ.fromRootNavigateTo r $ TZ.fromList $ fmap itemBody items
-            return $ renderHtml $ M.showMenu $ fromJust menu
+            let menu =
+                    fmap M.fromTreeZipper
+                        $ TZ.fromRootNavigateTo r
+                        $ TZ.fromList
+                        $ fmap itemBody items
+            return $ renderHtml $ M.showMenu menu
