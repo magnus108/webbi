@@ -53,7 +53,7 @@ fromTrie path trie = fromForest path (RT.fromTrie trie)
 
 
 fromList :: FilePath -> [FilePath] -> TreeZipper FilePath
-fromList path = fromTrie path . T.fromList T.insert . fmap splitPath
+fromList path = navigateTo path . fromTrie path . T.fromList T.insert . fmap splitPath
 
 
 down :: Eq a => a -> TreeZipper a -> Maybe (TreeZipper a)
@@ -177,7 +177,7 @@ navigateToParent route item = find routes item
             Just y -> find xs y
 
 navigateTo :: FilePath -> TreeZipper FilePath -> TreeZipper FilePath
-navigateTo route item = find (traceShow routes routes) item
+navigateTo route item = find routes item
   where
     routes = splitPath route
     find [] m = m

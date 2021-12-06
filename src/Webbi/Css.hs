@@ -36,7 +36,9 @@ showCss :: Css -> H.Html
 showCss (Css tz) = mapM_ link (links =<< (parents tz))
     where
         links tz = fmap TZ.path $ TZ.leafs $ TZ.navigateTo "css/" tz
-        link y = H.link ! A.rel "stylesheet" ! A.href (fromString y)
+        link y = do 
+            traceShowM y
+            H.link ! A.rel "stylesheet" ! A.href (fromString y)
         parents tz = case TZ.up tz of
-                                Nothing -> []
+                                Nothing -> tz : []
                                 Just p -> tz : parents p
