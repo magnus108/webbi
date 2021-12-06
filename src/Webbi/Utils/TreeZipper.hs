@@ -44,16 +44,12 @@ fromRoseTree :: RoseTree a -> TreeZipper a
 fromRoseTree x = TreeZipper x []
 
 
-fromForest :: FilePath -> Forest String -> TreeZipper String
-fromForest path (Forest xs) = fromRoseTree $ RT.RoseTree "/" xs
-
-
-fromTrie :: FilePath -> Trie String -> TreeZipper String
-fromTrie path trie = fromForest path (RT.fromTrie trie)
+fromForest :: Forest String -> TreeZipper String
+fromForest (Forest xs) = fromRoseTree $ RT.RoseTree "/" xs
 
 
 fromList :: FilePath -> [FilePath] -> TreeZipper FilePath
-fromList path = navigateTo path . fromTrie path . T.fromList T.insert . fmap splitPath
+fromList path = navigateTo path . fromForest . RT.fromTrie . T.fromList T.insert . fmap splitPath
 
 
 down :: Eq a => a -> TreeZipper a -> Maybe (TreeZipper a)
@@ -66,12 +62,10 @@ down x (TreeZipper rt bs) =
             _ -> Nothing
 
 
-
 up :: TreeZipper a -> Maybe (TreeZipper a)
 up (TreeZipper _ []) = Nothing
 up (TreeZipper item ((Context ls x rs):bs)) =
     Just (TreeZipper (RT.RoseTree x (ls <> [item] <> rs)) bs)
-
 
 
 rights :: Eq a => TreeZipper a -> [TreeZipper a]
