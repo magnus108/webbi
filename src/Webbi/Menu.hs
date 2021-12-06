@@ -19,11 +19,11 @@ import qualified Webbi.Utils.Trie              as T
 import qualified Data.Map                      as M
 
 
-data Menu = Menu [TZ.TreeZipper FilePath]
+data Menu = Menu (TZ.TreeZipper FilePath)
     deriving (Show)
 
 
-fromTreeZipper :: [TZ.TreeZipper FilePath] -> Menu
+fromTreeZipper :: TZ.TreeZipper FilePath -> Menu
 fromTreeZipper  = Menu
 
 

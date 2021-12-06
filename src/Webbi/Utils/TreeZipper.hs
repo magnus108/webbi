@@ -25,9 +25,6 @@ data Context a = Context [RoseTree a] a [RoseTree a]
     deriving (Show, Eq, Ord)
     deriving (Functor)
 
-data Root a = Root [TreeZipper a]
-    deriving (Show, Eq, Ord)
-    deriving (Functor)
 
 data TreeZipper a = TreeZipper (RoseTree a) [Context a]
     deriving (Show, Eq, Ord)
@@ -47,16 +44,16 @@ fromRoseTree :: RoseTree a -> TreeZipper a
 fromRoseTree x = TreeZipper x []
 
 
-fromForest :: Forest a -> Root a
-fromForest (Forest xs) = Root (fmap fromRoseTree xs)
+fromForest :: FilePath -> Forest String -> TreeZipper String
+fromForest path (Forest xs) = fromRoseTree $ RT.RoseTree "/" xs
 
 
-fromTrie :: Trie String -> Root String
-fromTrie trie = fromForest (RT.fromTrie trie)
+fromTrie :: FilePath -> Trie String -> TreeZipper String
+fromTrie path trie = fromForest path (RT.fromTrie trie)
 
 
-fromList :: [FilePath] -> Root FilePath
-fromList = fromTrie . T.fromList T.insert . fmap splitPath
+fromList :: FilePath -> [FilePath] -> TreeZipper FilePath
+fromList path = fromTrie path . T.fromList T.insert . fmap splitPath
 
 
 down :: Eq a => a -> TreeZipper a -> Maybe (TreeZipper a)
@@ -180,7 +177,7 @@ navigateToParent route item = find routes item
             Just y -> find xs y
 
 navigateTo :: FilePath -> TreeZipper FilePath -> TreeZipper FilePath
-navigateTo route item = find routes item
+navigateTo route item = find (traceShow routes routes) item
   where
     routes = splitPath route
     find [] m = m
@@ -188,13 +185,6 @@ navigateTo route item = find routes item
         case (down x m) of
             Nothing -> m
             Just y -> find xs y
-
-
-
-fromRootNavigateTo :: FilePath -> Root FilePath -> [TreeZipper FilePath]
-fromRootNavigateTo route (Root items) = r
-    where
-        r = fmap (navigateTo route) items
 
 
 path :: TreeZipper String -> String
@@ -238,7 +228,7 @@ showHierachy m = do
     showLevel "background: orange" m
 
 
-showMenu :: [TreeZipper String] -> H.Html
+showMenu :: TreeZipper String -> H.Html
 showMenu tz = do
-    mapM_ showHierachy tz
-    mapM_ showChildren tz
+    showHierachy tz
+    showChildren tz
