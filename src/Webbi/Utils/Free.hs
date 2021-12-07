@@ -4,7 +4,7 @@ import           Data.Char
 import           System.FilePath                ( splitPath )
 
 title :: FilePath -> String
-title "/" = "home"
+title "/" = "HOME"
 title y   = map toUpper $ title' (splitPath y)
   where
     title' (x : []            ) = x
