@@ -1,11 +1,5 @@
 module Webbi.Utils.TreeZipper where
 
---- OVERVEJ TEST AF ALLE METHODER!??
---- OVERVEJ TEST AF ALLE METHODER!??
---- OVERVEJ TEST AF ALLE METHODER!??
---- OVERVEJ TEST AF ALLE METHODER!??
---- OVERVEJ TEST AF ALLE METHODER!??
-
 import Debug.Trace
 import           Data.Char
 import Webbi.Utils.Trie (Trie)
@@ -147,8 +141,14 @@ rights' (Tree item ((Context ls x rs):bs) _ _) = rs
 
 lefts' :: TreeZipper a -> [RoseTree a]
 lefts' (Root _) = []
-lefts' (Tree _ [] ls _) = ls
+lefts' (Tree _ [] ls _) = reverse ls
 lefts' (Tree item ((Context ls x rs):bs) _ _) = reverse ls
+
+
+
+siblings :: Eq a => TreeZipper a -> [TreeZipper a]
+siblings tz = (lefts tz) ++ (rights tz)
+
 
 
 nextSibling :: Eq a => TreeZipper a -> Maybe (TreeZipper a)
@@ -177,6 +177,17 @@ nextSiblingOfAncestor tz =
                 nextSiblingOfAncestor p
             Just s ->
                 Just s
+
+
+hierachy :: (Eq a) => TreeZipper a -> [[TreeZipper a]]
+hierachy m = hierachy' m []
+    where
+        hierachy' x xs = case up x of
+                Nothing -> ((siblings x) : xs)
+                Just parent -> hierachy' parent ((siblings x):xs)
+
+
+
 
 
 navigateToParent :: FilePath -> TreeZipper FilePath -> TreeZipper FilePath
@@ -297,18 +308,27 @@ showsTop (Tree x _ ls rs) = do
     showItems' "background: cyan" $ fmap fromRoseTree $ x : ls ++ rs
 
 
-showChildren' :: TreeZipper String -> H.Html
-showChildren' tz = items'
+showSiblings :: TreeZipper String -> H.Html
+showSiblings tz = H.ul $ showItems' "background: white" items
     where
-        items = filterM (\x -> (\y -> y /= "index.html") <$> (takeFileName  <$> (RT.datum <$> (toRoseTree x)))) $ (traceShow (children tz) (children tz))
-        items' = case items of
-                    Nothing -> H.div $ "bad"
-                    Just i -> H.ul $ showItems' "background: white" i
+        items = siblings tz
 
 
+
+
+showHierachy' :: TreeZipper String -> H.Html
+showHierachy' m = do
+    case up m of
+        Nothing -> return ()
+        Just parent -> showHierachy' parent
+    showSiblings m
 
 showMenu :: TreeZipper String -> H.Html
 showMenu tz = do
+    traceShowM tz
+    let gg = hierachy tz
+    traceShowM gg
+    mapM_ (H.ul . showItems' "background: red") gg
     --showsTop tz
 --    showHierachy tz
-    showChildren' tz
+    -- showHierachy' tz
