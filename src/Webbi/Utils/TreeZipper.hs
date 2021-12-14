@@ -1,5 +1,11 @@
 module Webbi.Utils.TreeZipper where
 
+--- OVERVEJ TEST AF ALLE METHODER!??
+--- OVERVEJ TEST AF ALLE METHODER!??
+--- OVERVEJ TEST AF ALLE METHODER!??
+--- OVERVEJ TEST AF ALLE METHODER!??
+--- OVERVEJ TEST AF ALLE METHODER!??
+
 import Debug.Trace
 import           Data.Char
 import Webbi.Utils.Trie (Trie)
@@ -20,32 +26,32 @@ import qualified Text.Blaze.Html5.Attributes   as A
 
 import           System.FilePath                ( takeFileName, takeExtension, dropTrailingPathSeparator, splitPath )
 
-
 data Context a = Context [RoseTree a] a [RoseTree a]
     deriving (Show, Eq, Ord)
     deriving (Functor)
 
 
-data TreeZipper a = TreeZipper (RoseTree a) [Context a]
+data TreeZipper a = Root [RoseTree a]
+                  | Tree (RoseTree a) [Context a] [RoseTree a] [RoseTree a]
     deriving (Show, Eq, Ord)
     deriving (Functor)
 
 
-toRoseTree :: TreeZipper a -> RoseTree a
-toRoseTree (TreeZipper item _) = item
+fromRoseTree :: RoseTree a -> TreeZipper a
+fromRoseTree x = Tree x [] [] []
+
+toRoseTree :: TreeZipper a -> Maybe (RoseTree a)
+toRoseTree (Root _ ) = Nothing
+toRoseTree (Tree item _ _ _) = Just item
 
 
 toContext :: TreeZipper a -> Maybe (Context a)
-toContext (TreeZipper _ []) = Nothing
-toContext (TreeZipper _ (x:xs)) = Just x
-
-
-fromRoseTree :: RoseTree a -> TreeZipper a
-fromRoseTree x = TreeZipper x []
+toContext (Root _ ) = Nothing
+toContext (Tree _ (x:_) _ _) = Just x
 
 
 fromForest :: Forest String -> TreeZipper String
-fromForest (Forest xs) = fromRoseTree $ RT.RoseTree "/" xs
+fromForest (Forest xs) = Root xs
 
 
 fromList :: FilePath -> [FilePath] -> TreeZipper FilePath
@@ -53,19 +59,27 @@ fromList path = navigateTo path . fromForest . RT.fromTrie . T.fromList T.insert
 
 
 down :: Eq a => a -> TreeZipper a -> Maybe (TreeZipper a)
-down x (TreeZipper rt bs) =
+down x (Root rts) =
+    let
+        (ls, rs) = break (\item -> RT.datum item == x) rts
+    in
+        case rs of
+            y:ys -> Just (Tree y [] ls ys)
+            _ -> Nothing
+down x (Tree rt bs lss rss) =
     let
         (ls, rs) = break (\item -> RT.datum item == x) (RT.children rt)
     in
         case rs of
-            y:ys -> Just (TreeZipper y (Context ls (RT.datum rt) ys:(bs)))
+            y:ys -> Just (Tree y (Context ls (RT.datum rt) ys:(bs)) lss rss)
             _ -> Nothing
 
 
 up :: TreeZipper a -> Maybe (TreeZipper a)
-up (TreeZipper _ []) = Nothing
-up (TreeZipper item ((Context ls x rs):bs)) =
-    Just (TreeZipper (RT.RoseTree x (ls <> [item] <> rs)) bs)
+up (Root _) = Nothing
+up (Tree item [] lss rss) = Just $ Root $ lss ++ (item : rss)
+up (Tree item ((Context ls x rs):bs) lss rss) =
+    Just (Tree (RT.RoseTree x (ls <> [item] <> rs)) bs lss rss)
 
 
 rights :: Eq a => TreeZipper a -> [TreeZipper a]
@@ -76,6 +90,7 @@ rights tz =
         case next of
                Nothing -> []
                Just next' -> next' : (rights next')
+
 
 lefts :: Eq a => TreeZipper a -> [TreeZipper a]
 lefts tz =
@@ -91,13 +106,14 @@ leafs :: Eq a => TreeZipper a -> [TreeZipper a]
 leafs = filter (isNothing . firstChild) . children
 
 children :: Eq a => TreeZipper a -> [TreeZipper a]
+children r@(Root xs) = catMaybes $ fmap (\x -> down (RT.datum x) r) xs
 children tz =
     let
         child = firstChild tz
     in
         case child of
                Nothing -> []
-               Just child' -> child' : rights child'
+               Just child' ->  child' : (rights child')
 
 forward :: Eq a => TreeZipper a -> Maybe (TreeZipper a)
 forward zipper =
@@ -115,20 +131,24 @@ firstOf options v =
 
 
 firstChild :: Eq a => TreeZipper a -> Maybe (TreeZipper a)
-firstChild tz =
-    case RT.children (toRoseTree tz) of
-        [] -> Nothing
-        c : cs -> down (RT.datum c) tz
+firstChild (Root (x:xs)) = Just (Tree x [] [] xs)
+firstChild tz = firstChild' =<< toRoseTree tz
+    where
+        firstChild' x = case RT.children x of
+            [] -> Nothing
+            c : cs -> down (RT.datum c) tz
 
 
 rights' :: TreeZipper a -> [RoseTree a]
-rights' (TreeZipper _ []) = []
-rights' (TreeZipper item ((Context ls x rs):bs)) = rs
+rights' (Root _) = []
+rights' (Tree _ [] _ rs) = rs
+rights' (Tree item ((Context ls x rs):bs) _ _) = rs
 
 
 lefts' :: TreeZipper a -> [RoseTree a]
-lefts' (TreeZipper _ []) = []
-lefts' (TreeZipper item ((Context ls x rs):bs)) = reverse ls
+lefts' (Root _) = []
+lefts' (Tree _ [] ls _) = ls
+lefts' (Tree item ((Context ls x rs):bs) _ _) = reverse ls
 
 
 nextSibling :: Eq a => TreeZipper a -> Maybe (TreeZipper a)
@@ -181,38 +201,52 @@ navigateTo route item = find routes item
             Just y -> find xs y
 
 
-path :: TreeZipper String -> String
-path (TreeZipper rt []) = RT.datum rt
+path :: TreeZipper String -> Maybe String
+path (Root _) = Nothing
+path (Tree rt [] _ _) = Just (RT.datum rt)
 path tz = case up tz of
-            Nothing -> (RT.datum (toRoseTree tz))
-            Just tz' -> path tz' ++ (RT.datum (toRoseTree tz))
+            Nothing -> (fmap RT.datum (toRoseTree tz))
+            Just tz' -> liftM2 (\x y -> x ++ y) (path tz') (fmap RT.datum (toRoseTree tz))
 
 
 
-showItem :: H.AttributeValue -> TreeZipper String -> H.Html
-showItem color tz = H.li $ H.a ! A.style color ! A.href (fromString link) $ H.toHtml text
-    where link = path tz
-          text' = F.title (RT.datum (toRoseTree tz))
-          children' = children tz
-          text = if length children' == 1 then dropTrailingPathSeparator text' else text'
 
 
 
-showItems :: H.AttributeValue -> [TreeZipper String] -> H.Html
-showItems color xs = mapM_ (showItem color) xs
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 showChildren :: TreeZipper String -> H.Html
-showChildren = H.ul . showItems "background: white" . filter (\x -> takeFileName  (RT.datum (toRoseTree x)) /= "index.html") . children
+showChildren tz = items'
+    where
+        items = filterM (\x -> (\y -> y /= "index.html") <$> (takeFileName  <$> (RT.datum <$> (toRoseTree x)))) $ children tz
+        items' = case items of
+                    Nothing -> H.div $ "bad"
+                    Just i -> H.ul $ showItems "background: white" i
 
 
 showLevel :: H.AttributeValue -> TreeZipper String -> H.Html
 showLevel color tz = H.ul $ do
-    showItems "background: cyan" $ filter (\x -> takeFileName  (RT.datum (toRoseTree x)) /= "index.html") (lefts tz)
-    let b = takeFileName  (RT.datum (toRoseTree tz)) /= "index.html"
-    when b (showItem color tz)
-    showItems "background: green" $filter (\x -> takeFileName  (RT.datum (toRoseTree x)) /= "index.html")  (rights tz)
-
+    let mLefts = filterM (\x -> (\y -> y /= "index.html") <$> (takeFileName <$> (RT.datum <$> (toRoseTree x)))) (lefts tz)
+    _ <- case mLefts of
+            Nothing -> H.div $ "bad"
+            Just i -> showItems "background: cyan" i
+    let b = ((\x -> x /= "index.html") <$> (takeFileName  <$> (RT.datum <$> (toRoseTree tz))))
+    case b of
+        Nothing -> H.div $ "bad"
+        Just b -> if b then showItem color tz else H.div "bad"
+    mapM_ (showItems "background: green") $ filterM (\x -> (\y -> y /= "index.html") <$> takeFileName  <$> (RT.datum <$> (toRoseTree x))) (rights tz)
 
 showHierachy :: TreeZipper String -> H.Html
 showHierachy m = do
@@ -222,7 +256,59 @@ showHierachy m = do
     showLevel "background: orange" m
 
 
+
+
+
+
+showItem :: H.AttributeValue -> TreeZipper String -> H.Html
+showItem color tz = case item of
+                      Nothing -> H.div $ "bad"
+                      Just x -> x
+    where link = path tz
+          text' = F.title <$> (RT.datum <$> (toRoseTree tz))
+          children' = children tz
+          text = if length children' == 1 then dropTrailingPathSeparator <$> text' else text'
+          item = liftM2 (\l t -> H.li $ H.a ! A.style color ! A.href (fromString l) $ (H.toHtml t)) link text
+
+showItems :: H.AttributeValue -> [TreeZipper String] -> H.Html
+showItems color xs = mapM_ (showItem color) xs
+
+
+
+
+
+
+
+showItem' :: H.AttributeValue -> TreeZipper String -> Maybe H.Html
+showItem' color tz = item
+    where link = (\x -> "/" ++ x) <$> path tz
+          text = F.title <$> dropTrailingPathSeparator <$> RT.datum <$> toRoseTree tz
+          item = (\l t -> H.a ! A.style color ! A.href (fromString l) $ (H.toHtml t)) <$> link <*> text
+
+
+showItems' :: H.AttributeValue -> [TreeZipper String] -> H.Html
+showItems' color xs = fromMaybe (H.div "lol") content
+    where
+        content = fmap (H.ul . F.foldMapM H.li) $ sequence $ fmap (showItem' color) xs
+
+
+showsTop :: TreeZipper String -> H.Html
+showsTop (Tree x _ ls rs) = do
+    showItems' "background: cyan" $ fmap fromRoseTree $ x : ls ++ rs
+
+
+showChildren' :: TreeZipper String -> H.Html
+showChildren' tz = items'
+    where
+        items = filterM (\x -> (\y -> y /= "index.html") <$> (takeFileName  <$> (RT.datum <$> (toRoseTree x)))) $ (traceShow (children tz) (children tz))
+        items' = case items of
+                    Nothing -> H.div $ "bad"
+                    Just i -> H.ul $ showItems' "background: white" i
+
+
+
 showMenu :: TreeZipper String -> H.Html
 showMenu tz = do
-    showHierachy tz
-    showChildren tz
+    --showsTop tz
+--    showHierachy tz
+    showChildren' tz

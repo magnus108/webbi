@@ -33,7 +33,7 @@ fromTreeZipper  = Css
 
 
 showCss :: Css -> H.Html
-showCss (Css tz) = mapM_ link (links =<< (parents tz))
+showCss (Css tz) = mapM_ link (catMaybes (links =<< (parents tz)))
     where
         links tz = fmap TZ.path $ TZ.leafs $ TZ.navigateTo "css/" tz
         link y = do 

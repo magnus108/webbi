@@ -29,6 +29,9 @@ dependencies:
 - filepath
 - extra
 
+- tasty
+- tasty-hunit
+
 
 default-extensions:
 - OverloadedStrings
