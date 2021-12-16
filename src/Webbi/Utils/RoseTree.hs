@@ -5,7 +5,6 @@ import qualified Webbi.Utils.Trie              as T
 
 import qualified Data.Map                      as M
 
-
 data Forest a = Forest [RoseTree a]
     deriving (Eq, Ord, Show)
     deriving (Functor)

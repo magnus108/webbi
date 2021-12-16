@@ -1,15 +1,17 @@
 import Test.Tasty
 import Test.Tasty.HUnit
 
+import           System.FilePath                ( splitPath)
 import Debug.Trace
 import Data.Maybe
 import Webbi.Utils.RoseTree (RoseTree(..), datum)
 import Webbi.Utils.TreeZipper
 
+import qualified Webbi.Utils.Trie as T
+
 main :: IO ()
 main = do
 --    traceShowM (up =<< (up lol))
-    traceShowM secondChild2'
     defaultMain tests
 
 
@@ -32,6 +34,9 @@ root2 = Root [roseTree, roseTree2, roseTree3 ]
 thirdChild' = down 100 root2
 secondChild2' = previousSibling =<< thirdChild'
 firstChild2' = previousSibling =<< secondChild2'
+
+
+root3 = Root [roseLeaf]
 
 --- test all these as props
 unitTests :: TestTree
@@ -162,21 +167,37 @@ unitTests = testGroup "Unit tests"
     , testCase "forward (on firstFirstChild)" $
         (forward =<< firstFirstChild') @?= (down 3 =<< firstChild')
 
-    , testCase "hierachy (on root)" $
-        hierachy root @?= [siblings root]
+    , testCase "navigateTo (on root)" $
+        navigateTo [1,2] root @?= (down 2 =<< firstChild')
 
-    , testCase "hierachy (on firstChild)" $
-        (hierachy <$> firstChild') @?= sequence [Just (siblings root), siblings <$> firstChild']
+    , testCase "navigateTo (on firstChild)" $
+        (navigateTo [2] =<< firstChild') @?= (down 2 =<< firstChild')
 
-    , testCase "hierachy (on firstFirstChild)" $
-        (hierachy <$> firstFirstChild') @?= sequence [Just (siblings root), siblings <$> firstChild', siblings <$> firstFirstChild']
+    , testCase "navigateTo (on firstFirstChild)" $
+        (navigateTo [] =<< firstFirstChild') @?=firstFirstChild'
 
-    
 
 
 
 
     --- NEWSHIT
+    --
+    --
+ --   , testCase "navigateTo (on upupup')" $
+  --      (navigateTo [ "posts/", "bifunctors/","lols/", "index.html"] upup') @?= Nothing
+    
+        {-
+    , testCase "hierachy (on root)" $
+        hierachy root @?= []
+
+    , testCase "hierachy (on firstChild)" $
+        (hierachy <$> firstChild') @?= sequence [siblings <$> firstChild']
+
+    , testCase "hierachy (on firstFirstChild)" $
+        (hierachy <$> firstFirstChild') @?= sequence [siblings <$> firstChild', siblings <$> firstFirstChild']
+        -}
+
+
     , testCase "lefts (thirdChild')" $
         (lefts' <$> thirdChild') @?= Just [RoseTree 10 [RoseTree 20 [],RoseTree 30 []],RoseTree 1 [RoseTree 2 [],RoseTree 3 []]]
 
@@ -193,6 +214,11 @@ unitTests = testGroup "Unit tests"
     , testCase "sibling (on upup')" $
         fmap (\x -> fmap datum (toRoseTree x)) (siblings upup') @?= []
 
+--    , testCase "sibling (on upup')" $
+ --       (fmap (\x -> fmap datum (toRoseTree x)) <$> (siblings' <$>(up =<< up =<< up =<< up lols))) @?= Nothing
+
+--   , testCase "trie" $
+--        (T.fromList T.insert $ fmap splitPath ["/posts/bifunctors/lol/index.html", "/posts/bifunctors/index.html"]) @?= T.empty
     ]
 
 lol = Tree (RoseTree "index.html" [])
@@ -270,26 +296,29 @@ upup' = Root [RoseTree "about/"
             ,RoseTree "posts/" 
                 [RoseTree "applicative/" 
                     [RoseTree "index.html" []]
-                    ,RoseTree "bifunctors/" 
+                ,RoseTree "bifunctors/" 
+                    [RoseTree "index.html" []
+                    ,RoseTree "lols/"
                         [RoseTree "index.html" []]
-                    ,RoseTree "functors/" 
+                    ]
+                ,RoseTree "functors/" 
+                    [RoseTree "index.html" []]
+                ,RoseTree "index.html" []
+                ,RoseTree "monads/" 
+                    [RoseTree "index.html" []]
+                ,RoseTree "profunctors/" 
+                    [RoseTree "index.html" []]]
+                ,RoseTree "projects/" 
+                    [RoseTree "chair/" 
                         [RoseTree "index.html" []]
                     ,RoseTree "index.html" []
-                    ,RoseTree "monads/" 
-                        [RoseTree "index.html" []]
-                    ,RoseTree "profunctors/" 
-                        [RoseTree "index.html" []]]
-                    ,RoseTree "projects/" 
-                        [RoseTree "chair/" 
-                            [RoseTree "index.html" []]
-                        ,RoseTree "index.html" []
-                        ]
-                    ,RoseTree "test/" 
-                        [RoseTree "index.html" []]
+                    ]
+                ,RoseTree "test/" 
+                    [RoseTree "index.html" []]
             ]
 
 
-
+lols = Tree (RoseTree "index.html" []) [Context [] "more/" [],Context [] "applicative/" [],Context [] "posts/" [RoseTree "bifunctors/" [RoseTree "index.html" []],RoseTree "functors/" [RoseTree "index.html" []],RoseTree "index.html" [],RoseTree "monads/" [RoseTree "index.html" []],RoseTree "profunctors/" [RoseTree "index.html" []]]] [RoseTree "about/" [RoseTree "index.html" []],RoseTree "contact/" [RoseTree "index.html" []],RoseTree "index.html" []] [RoseTree "projects/" [RoseTree "chair/" [RoseTree "index.html" []],RoseTree "index.html" []],RoseTree "test/" [RoseTree "index.html" []]] 
 
 
 

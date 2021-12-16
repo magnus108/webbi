@@ -13,6 +13,10 @@ title y   = map toUpper $ title' (splitPath y)
     title' (x : ["index.html"]) = x 
     title' (x : xs            ) = title' xs
 
+link :: FilePath -> String
+link "/index.html" = ""
+link y = y
+
 whenM :: Monad m => m Bool -> m () -> m ()
 whenM mb thing = do { b <- mb
                     ; when b thing }
