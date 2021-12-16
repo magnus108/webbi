@@ -37,8 +37,7 @@ showCss (Css tz) = mapM_ link (catMaybes (links =<< (parents tz)))
     where
         links tz = fmap TZ.path $ TZ.leafs $ TZ.navigateTo ["css/"] tz
         link y = do 
-            traceShowM y
-            H.link ! A.rel "stylesheet" ! A.href (fromString y)
+            H.link ! A.rel "stylesheet" ! A.href (fromString ("/"++y))
         parents tz = case TZ.up tz of
                                 Nothing -> tz : []
                                 Just p -> tz : parents p
