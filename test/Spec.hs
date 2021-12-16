@@ -167,6 +167,7 @@ unitTests = testGroup "Unit tests"
     , testCase "forward (on firstFirstChild)" $
         (forward =<< firstFirstChild') @?= (down 3 =<< firstChild')
 
+{-
     , testCase "navigateTo (on root)" $
         navigateTo [1,2] root @?= (down 2 =<< firstChild')
 
@@ -174,7 +175,8 @@ unitTests = testGroup "Unit tests"
         (navigateTo [2] =<< firstChild') @?= (down 2 =<< firstChild')
 
     , testCase "navigateTo (on firstFirstChild)" $
-        (navigateTo [] =<< firstFirstChild') @?=firstFirstChild'
+        (navigateTo [] =<< firstFirstChild') @?= firstFirstChild'
+        -}
 
 
 
