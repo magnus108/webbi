@@ -234,28 +234,35 @@ showItem' color tz                              = item
             <*> text
 
 
-showItems' :: H.AttributeValue -> [TreeZipper String] -> H.Html
-showItems' color xs = content
+showItems' :: H.AttributeValue -> ListZipper (TreeZipper String) -> H.Html
+showItems' color (ListZipper ls x xs) = content
   where
-    content = (H.ul . F.foldMapM H.li) $ catMaybes $ fmap (showItem' color) xs
+    lss = fmap (showItem' color) ls
+    xx = showItem' "background: purple" x
+    rss = traceShow (xs) (fmap (showItem' color) xs)
+    content = (H.ul . F.foldMapM H.li) $ catMaybes $ (lss ++ (xx : rss))
 
 
 
-siblings' :: Eq a => TreeZipper a -> [TreeZipper a]
-siblings' tz = (lefts tz) ++ (tz : (rights tz))
+data ListZipper a = ListZipper [a] a [a]
+    deriving (Show, Eq, Ord)
+    deriving (Functor)
 
 
-hierachy' :: (Eq a, Show a) => TreeZipper a -> [[TreeZipper a]]
+siblings' :: Eq a => TreeZipper a -> ListZipper (TreeZipper a)
+siblings' tz = ListZipper (lefts tz) tz (rights tz)
+
+
+hierachy' :: (Eq a, Show a) => TreeZipper a -> [ListZipper (TreeZipper a)]
 hierachy' m = hierachy'' m []
   where
     hierachy'' x xs =
         let level = case siblings' x of
-                [x] -> xs
+                (ListZipper [] x []) -> xs
                 ys  -> (ys : xs)
         in  case up x of
                 Nothing     -> level
                 Just parent -> hierachy'' parent level
-
 
 
 showMenu :: TreeZipper String -> H.Html
