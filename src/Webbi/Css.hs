@@ -32,12 +32,9 @@ fromTreeZipper :: TZ.TreeZipper FilePath -> Css
 fromTreeZipper  = Css
 
 
+showLink :: FilePath -> H.Html
+showLink path = H.link ! A.rel "stylesheet" ! A.href (fromString ("/"++ path))
+
+
 showCss :: Css -> H.Html
-showCss (Css tz) = mapM_ link (catMaybes (links =<< (parents tz)))
-    where
-        links tz = fmap TZ.path $ TZ.leafs $ TZ.navigateTo ["css/"] tz
-        link y = do
-            H.link ! A.rel "stylesheet" ! A.href (fromString ("/"++y))
-        parents tz = case TZ.up tz of
-                                Nothing -> tz : []
-                                Just p -> tz : parents p
+showCss (Css tz) = mapM_ showLink (TZ.path' =<< (TZ.collectLeafs ["css/"] =<< (TZ.parents tz)))

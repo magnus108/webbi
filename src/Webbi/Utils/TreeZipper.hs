@@ -54,6 +54,10 @@ fromForest :: Forest String -> TreeZipper String
 fromForest (Forest xs) = Root xs
 
 
+collectLeafs :: [FilePath] -> TreeZipper FilePath -> [TreeZipper FilePath]
+collectLeafs path tz = leafs $ navigateTo path tz
+
+
 fromList :: FilePath -> [FilePath] -> TreeZipper FilePath
 fromList path =
     navigateTo route
@@ -199,6 +203,13 @@ path tz               = case up tz of
         liftM2 (\x y -> x ++ y) (path tz') (fmap RT.datum (toRoseTree tz))
 
 
+path' :: TreeZipper String -> [String]
+path' (Root _        ) = []
+path' (Tree rt [] _ _) = [RT.datum rt]
+path' tz               = case up tz of
+    Nothing -> (fmap RT.datum (maybeToList (toRoseTree tz)))
+    Just tz' ->
+        liftM2 (\x y -> x ++ y) (path' tz') (fmap RT.datum (maybeToList (toRoseTree tz)))
 
 
 
@@ -216,6 +227,10 @@ path tz               = case up tz of
 
 
 
+parents :: TreeZipper a -> [TreeZipper a]
+parents tz = case up tz of
+                    Nothing -> tz : []
+                    Just p -> tz : parents p
 
 
 
@@ -253,7 +268,7 @@ siblings' :: Eq a => TreeZipper a -> ListZipper (TreeZipper a)
 siblings' tz = ListZipper (lefts tz) tz (rights tz)
 
 
-hierachy' :: (Eq a, Show a) => TreeZipper a -> [ListZipper (TreeZipper a)]
+hierachy' :: (Eq a) => TreeZipper a -> [ListZipper (TreeZipper a)]
 hierachy' m = hierachy'' m []
   where
     hierachy'' x xs =
