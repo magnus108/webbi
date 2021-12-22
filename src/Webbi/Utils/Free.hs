@@ -25,3 +25,8 @@ foldMapM :: (Monoid b, Monad m, Foldable f) => (a -> m b) -> f a -> m b
 foldMapM f xs = foldr step return xs mempty
   where
     step x r z = f x >>= \y -> r $! z `mappend` y
+
+myZip :: (a -> a -> a) -> [a] -> [a] -> [a]
+myZip f _ [] = []
+myZip f [] (x:xs) = x : myZip f [] xs
+myZip f (y:ys) (x:xs) = f y x : myZip f ys xs

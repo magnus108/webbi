@@ -37,4 +37,4 @@ showLink path = H.link ! A.rel "stylesheet" ! A.href (fromString ("/"++ path))
 
 
 showCss :: Css -> H.Html
-showCss (Css tz) = mapM_ showLink (TZ.path' =<< (TZ.collectLeafs ["css/"] =<< (TZ.parents tz)))
+showCss (Css tz) = mapM_ showLink (TZ.path' =<< (TZ.collectLeafs "css/" =<< (TZ.parents tz)))

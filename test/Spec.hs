@@ -1,10 +1,13 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 import Test.Tasty
 import Test.Tasty.HUnit
+import Test.Tasty.QuickCheck as QC
 
 import           System.FilePath                ( splitPath)
 import Debug.Trace
 import Data.Maybe
-import Webbi.Utils.RoseTree (RoseTree(..), datum)
+import Webbi.Utils.RoseTree (RoseTree(..))
+import qualified Webbi.Utils.RoseTree as RT
 import Webbi.Utils.TreeZipper
 
 import qualified Webbi.Utils.Trie as T
@@ -16,7 +19,19 @@ main = do
 
 
 tests :: TestTree
-tests = testGroup "Tests" [unitTests]
+tests = testGroup "Tests" [unitTests, quickChecks]
+
+
+quickChecks :: TestTree
+quickChecks = testGroup "(checked by QuickCheck)"
+  [ QC.testProperty "up . firstChild is self" $
+        (\(tz :: TreeZipper Int) -> isJust (firstChild tz) ==> (up =<< (firstChild tz)) === (Just tz))
+  ]
+
+
+
+
+
 
 roseLeaf = RoseTree 3 []
 roseLeaf1 = RoseTree 2 []
@@ -210,11 +225,11 @@ unitTests = testGroup "Unit tests"
         (previousSibling =<< (secondChild2')) @?= (down 1 root2)
 
     , testCase "sibling (on lol)" $
-        fmap (\x -> fmap datum (toRoseTree x)) (siblings lol) @?= [Just "chair/"]
+        fmap (\x -> fmap RT.datum (toRoseTree x)) (siblings lol) @?= [Just "chair/"]
 
 
     , testCase "sibling (on upup')" $
-        fmap (\x -> fmap datum (toRoseTree x)) (siblings upup') @?= []
+        fmap (\x -> fmap RT.datum (toRoseTree x)) (siblings upup') @?= []
 
 --    , testCase "sibling (on upup')" $
  --       (fmap (\x -> fmap datum (toRoseTree x)) <$> (siblings' <$>(up =<< up =<< up =<< up lols))) @?= Nothing

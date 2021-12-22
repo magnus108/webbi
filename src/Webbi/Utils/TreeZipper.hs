@@ -1,4 +1,7 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 module Webbi.Utils.TreeZipper where
+
+import Test.Tasty.QuickCheck as QC
 
 import           Debug.Trace
 import           Data.Char
@@ -24,6 +27,7 @@ import           System.FilePath                ( takeFileName
                                                 , takeExtension
                                                 , dropTrailingPathSeparator
                                                 , splitPath
+                                                , joinPath
                                                 )
 
 data Context a = Context [RoseTree a] a [RoseTree a]
@@ -35,6 +39,29 @@ data TreeZipper a = Root [RoseTree a]
                   | Tree (RoseTree a) [Context a] [RoseTree a] [RoseTree a]
     deriving (Show, Eq, Ord)
     deriving (Functor)
+
+
+
+instance Arbitrary a => Arbitrary (RoseTree a) where
+    arbitrary = sized gen
+        where
+            gen :: Int -> Gen (RoseTree a)
+            gen 0 = RT.RoseTree <$> arbitrary <*> (return [])
+            gen n = RT.RoseTree <$> arbitrary <*> (vectorOf (n `div` 4) (gen (n `div` 4)))
+
+instance Arbitrary a => Arbitrary (TreeZipper a) where
+    arbitrary = sized gen
+        where
+            gen :: Int -> Gen (TreeZipper a)
+            gen 0 = Root <$> arbitrary
+            gen n = Tree <$> arbitrary <*> (vectorOf (n `div` 8) (resize (n `div` 4) arbitrary)) <*> (vectorOf (n `div` 8) (resize (n `div` 4) arbitrary)) <*> (vectorOf (n `div` 8) (resize (n `div` 4) arbitrary))
+
+instance Arbitrary a => Arbitrary (Context a) where
+    arbitrary = sized gen
+        where
+            gen :: Int -> Gen (Context a)
+            gen 0 = Context <$> (return []) <*> arbitrary <*> (return [])
+            gen n = Context <$> (vectorOf (n `div` 8) arbitrary) <*> arbitrary <*> (vectorOf (n `div` 8) arbitrary)
 
 
 fromRoseTree :: RoseTree a -> TreeZipper a
@@ -54,8 +81,9 @@ fromForest :: Forest String -> TreeZipper String
 fromForest (Forest xs) = Root xs
 
 
-collectLeafs :: [FilePath] -> TreeZipper FilePath -> [TreeZipper FilePath]
-collectLeafs path tz = leafs $ navigateTo path tz
+-- does this belong here?
+collectLeafs :: FilePath -> TreeZipper FilePath -> [TreeZipper FilePath]
+collectLeafs path tz = children =<< (maybeToList (down path tz))
 
 
 fromList :: FilePath -> [FilePath] -> TreeZipper FilePath
@@ -194,25 +222,17 @@ navigateTo' routes item = find routes item
         Just y  -> find xs y
 
 
-path :: TreeZipper String -> Maybe String
-path (Root _        ) = Nothing
-path (Tree rt [] _ _) = Just (RT.datum rt)
-path tz               = case up tz of
-    Nothing -> (fmap RT.datum (toRoseTree tz))
-    Just tz' ->
-        liftM2 (\x y -> x ++ y) (path tz') (fmap RT.datum (toRoseTree tz))
 
 
 path' :: TreeZipper String -> [String]
 path' (Root _        ) = []
-path' (Tree rt [] _ _) = [RT.datum rt]
 path' tz               = case up tz of
-    Nothing -> (fmap RT.datum (maybeToList (toRoseTree tz)))
-    Just tz' ->
-        liftM2 (\x y -> x ++ y) (path' tz') (fmap RT.datum (maybeToList (toRoseTree tz)))
+    Nothing -> datum tz
+    Just tz' -> F.myZip (++) (path' tz') (datum tz)
 
 
-
+datum :: TreeZipper a -> [a]
+datum tz = fmap RT.datum (maybeToList (toRoseTree tz))
 
 
 
@@ -228,9 +248,9 @@ path' tz               = case up tz of
 
 
 parents :: TreeZipper a -> [TreeZipper a]
-parents tz = case up tz of
-                    Nothing -> tz : []
-                    Just p -> tz : parents p
+parents tz = tz : case up tz of
+                    Nothing -> []
+                    Just p -> parents p
 
 
 
@@ -241,12 +261,13 @@ showItem' :: H.AttributeValue -> TreeZipper String -> Maybe H.Html
 showItem' color (Tree (RT.RoseTree _ []) _ _ _) = Nothing
 showItem' color tz                              = item
   where
-    link = F.link <$> (\x -> "/" ++ x) <$> path tz
+    link = F.link ("/" ++ (foldl (++) "" (path' tz)))
     text = F.title <$> dropTrailingPathSeparator <$> RT.datum <$> toRoseTree tz
+    text' = (takeFileName (joinPath (traceShow (path' tz) (path' tz))))
     item =
         (\l t -> H.a ! A.style color ! A.href (fromString l) $ (H.toHtml t))
-            <$> link
-            <*> text
+            <$> (Just link)
+            <*> (Just text')
 
 
 showItems' :: H.AttributeValue -> ListZipper (TreeZipper String) -> H.Html
@@ -254,7 +275,7 @@ showItems' color (ListZipper ls x xs) = content
   where
     lss = fmap (showItem' color) ls
     xx = showItem' "background: purple" x
-    rss = traceShow (xs) (fmap (showItem' color) xs)
+    rss = fmap (showItem' color) xs
     content = (H.ul . F.foldMapM H.li) $ catMaybes $ (lss ++ (xx : rss))
 
 
