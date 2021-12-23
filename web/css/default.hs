@@ -2,6 +2,7 @@
 
 import           Clay
 import qualified Clay.Flexbox as FB
+import qualified Clay.Size as S
 import qualified Data.Text.Lazy.IO             as T
 
 primaryBoxShadow :: Css
@@ -51,44 +52,57 @@ padding1 x = padding x x x x
 styleMenu :: Css
 styleMenu = do
     ".menu" ? do
-        display flex
-        flexDirection column
-        primaryBoxShadow
+        marginLeft auto
+        marginRight auto
+        maxWidth (px 1140)
     ".menu-level" ? do
         display flex
-        primaryBoxShadow
     ".menu-item" ? do
         FB.flex 1 1 auto
         display flex
-        primaryBoxShadow
-        listStyleType none
     ".menu-link" ? do
-        backgroundColor darkPrimaryColor
         ":hover" & backgroundColor "#f9f9f9"
         linkStyle
     ".menu-link-selection" ? do
         backgroundColor accentColor
         linkStyle
 
+
 linkStyle :: Css
 linkStyle = do
     FB.flex 1 1 auto
-    primaryBoxShadow
+    padding1 (S.rem 1)
     ".focus" & fontWeight bold
 
+generalStyle :: Css
+generalStyle = do
+    ".main" ? do
+        marginTop (S.rem 2)
+        marginLeft auto
+        marginRight auto
+        maxWidth (px 1140)
+
+    ".title" ? do
+        fontSize (S.rem 2)
+
+    ".header" ? do
+        primaryBoxShadow
+        backgroundColor darkPrimaryColor
+
+    ".footer" ? do
+        marginTop (S.rem 1)
+        marginLeft auto
+        marginRight auto
+        maxWidth (px 1140)
+
+    body ? do
+        color "#563D7C"
+        fontFamily [] [monospace]
 
 styleAll :: Css
 styleAll = do
+    generalStyle
     styleMenu
-    body ? do
-        fontFamily [] [monospace]
-        color "#563D7C"
-        margin1 nil
-        height (pct 100)
-        display flex
-        flexDirection column
-        star # selection ?
-            background accentColor
 
 
 main :: IO ()

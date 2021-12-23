@@ -307,7 +307,7 @@ style = "menu"
 showMenu :: TreeZipper String -> H.Html
 showMenu tz = do
     let gg = hierachy' tz
-    H.nav ! A.class_ style $ mapM_ showItems' gg
+    H.header ! A.class_ "header" $ H.nav ! A.class_ style $ mapM_ showItems' gg
     --showsTop tz
 --    showHierachy tz
     -- showHierachy' tz
