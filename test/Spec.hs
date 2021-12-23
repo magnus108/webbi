@@ -26,6 +26,8 @@ quickChecks :: TestTree
 quickChecks = testGroup "(checked by QuickCheck)"
   [ QC.testProperty "up . firstChild is self" $
         (\(tz :: TreeZipper Int) -> isJust (firstChild tz) ==> (up =<< (firstChild tz)) === (Just tz))
+  , QC.testProperty "lefts/rights" $
+         verboseShrinking $ (\(tz :: TreeZipper Int) -> within 100000 $ isJust (up tz) ==> (Just (lefts tz ++ (tz : (rights tz)))) === (children <$> up tz))
   ]
 
 

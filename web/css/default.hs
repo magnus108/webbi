@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 import           Clay
 import qualified Clay.Flexbox as FB
-
 import qualified Data.Text.Lazy.IO             as T
 
 primaryBoxShadow :: Css
@@ -50,6 +50,36 @@ padding1 x = padding x x x x
 
 styleMenu :: Css
 styleMenu = do
+    ".menu" ? do
+        display flex
+        flexDirection column
+        primaryBoxShadow
+    ".menu-level" ? do
+        display flex
+        primaryBoxShadow
+    ".menu-item" ? do
+        FB.flex 1 1 auto
+        display flex
+        primaryBoxShadow
+        listStyleType none
+    ".menu-link" ? do
+        backgroundColor darkPrimaryColor
+        ":hover" & backgroundColor "#f9f9f9"
+        linkStyle
+    ".menu-link-selection" ? do
+        backgroundColor accentColor
+        linkStyle
+
+linkStyle :: Css
+linkStyle = do
+    FB.flex 1 1 auto
+    primaryBoxShadow
+    ".focus" & fontWeight bold
+
+
+styleAll :: Css
+styleAll = do
+    styleMenu
     body ? do
         fontFamily [] [monospace]
         color "#563D7C"
@@ -60,21 +90,6 @@ styleMenu = do
         star # selection ?
             background accentColor
 
-    header ? do
-        primaryBoxShadow
-        nav <? do
-            ul <? do
-                display flex
-                flexFlow row FB.nowrap
-                li <? do
-                    listStyleType none
-                    FB.flex 1 1 auto
-                    padding1 (px 15)
-                    fontSize (px 14)
-                    backgroundColor darkPrimaryColor
-                    a <? do
-                        ":hover" & backgroundColor "#f9f9f9"
-                        ".focus" & fontWeight bold
 
 main :: IO ()
-main = T.putStr $ renderWith compact [] $ styleMenu
+main = T.putStr $ renderWith compact [] $ styleAll

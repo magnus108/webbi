@@ -5,8 +5,6 @@ import qualified Data.Text.Lazy.IO             as T
 
 styleMenu :: Css
 styleMenu = do
-    body ? do
-        background red
     return ()
 
 main :: IO ()

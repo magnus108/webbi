@@ -47,14 +47,14 @@ instance Arbitrary a => Arbitrary (RoseTree a) where
         where
             gen :: Int -> Gen (RoseTree a)
             gen 0 = RT.RoseTree <$> arbitrary <*> (return [])
-            gen n = RT.RoseTree <$> arbitrary <*> (vectorOf (n `div` 4) (gen (n `div` 4)))
+            gen n = RT.RoseTree <$> arbitrary <*> (vectorOf (n `div` 12) (gen (n `div` 12)))
 
 instance Arbitrary a => Arbitrary (TreeZipper a) where
     arbitrary = sized gen
         where
             gen :: Int -> Gen (TreeZipper a)
             gen 0 = Root <$> arbitrary
-            gen n = Tree <$> arbitrary <*> (vectorOf (n `div` 8) (resize (n `div` 4) arbitrary)) <*> (vectorOf (n `div` 8) (resize (n `div` 4) arbitrary)) <*> (vectorOf (n `div` 8) (resize (n `div` 4) arbitrary))
+            gen n = Tree <$> arbitrary <*> (vectorOf (n `div` 12) (resize (n `div` 12) arbitrary)) <*> (vectorOf (n `div` 12) (resize (n `div` 12) arbitrary)) <*> (vectorOf (n `div` 12) (resize (n `div` 12) arbitrary))
 
 instance Arbitrary a => Arbitrary (Context a) where
     arbitrary = sized gen
@@ -258,25 +258,26 @@ parents tz = tz : case up tz of
 
 
 showItem' :: H.AttributeValue -> TreeZipper String -> Maybe H.Html
-showItem' color (Tree (RT.RoseTree _ []) _ _ _) = Nothing
-showItem' color tz                              = item
+showItem' _ (Tree (RT.RoseTree _ []) _ _ _) = Nothing
+showItem' itemStyle tz                              = item
   where
     link = F.link ("/" ++ (foldl (++) "" (path' tz)))
     text = F.title <$> dropTrailingPathSeparator <$> RT.datum <$> toRoseTree tz
     text' = (takeFileName (joinPath (traceShow (path' tz) (path' tz))))
     item =
-        (\l t -> H.a ! A.style color ! A.href (fromString l) $ (H.toHtml t))
+        (\l t -> H.a ! A.class_ (itemStyle) ! A.href (fromString l) $ (H.toHtml t))
             <$> (Just link)
-            <*> (Just text')
+            <*> (text)
 
 
-showItems' :: H.AttributeValue -> ListZipper (TreeZipper String) -> H.Html
-showItems' color (ListZipper ls x xs) = content
+showItems' :: ListZipper (TreeZipper String) -> H.Html
+showItems' (ListZipper ls x xs) = content
   where
-    lss = fmap (showItem' color) ls
-    xx = showItem' "background: purple" x
-    rss = fmap (showItem' color) xs
-    content = (H.ul . F.foldMapM H.li) $ catMaybes $ (lss ++ (xx : rss))
+    itemStyle = style <> "-link"
+    lss = fmap (showItem' itemStyle) ls
+    xx = (showItem' (itemStyle <> "-selection") x)
+    rss = fmap (showItem' itemStyle) xs
+    content = ((H.ul ! A.class_ (style <> "-level")) . F.foldMapM (H.li ! A.class_ (style <> "-item"))) $ catMaybes $ (lss ++ (xx : rss))
 
 
 
@@ -301,10 +302,12 @@ hierachy' m = hierachy'' m []
                 Just parent -> hierachy'' parent level
 
 
+style = "menu"
+
 showMenu :: TreeZipper String -> H.Html
 showMenu tz = do
     let gg = hierachy' tz
-    mapM_ (showItems' "background: red") gg
+    H.nav ! A.class_ style $ mapM_ showItems' gg
     --showsTop tz
 --    showHierachy tz
     -- showHierachy' tz
