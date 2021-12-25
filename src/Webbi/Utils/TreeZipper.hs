@@ -51,7 +51,7 @@ toContext (Root _            ) = Nothing
 toContext (Tree _ (x : _) _ _) = Just x
 
 
-fromForest :: Forest String -> TreeZipper String
+fromForest :: Forest a -> TreeZipper a
 fromForest (Forest xs) = Root xs
 
 
@@ -150,19 +150,15 @@ lefts' (Tree item ((Context ls x rs) : bs) _ _) = reverse ls
 
 
 nextSibling :: Eq a => TreeZipper a -> Maybe (TreeZipper a)
-nextSibling (Root _) = Nothing
-nextSibling (Tree x [] ls []) = Nothing
-nextSibling (Tree x [] ls (r: rs)) = Just $ Tree r [] (x:ls) rs
-nextSibling (Tree item ((Context ls x ([])) : _) _ _) = Nothing
-nextSibling (Tree item ((Context ls x (r:rs)) : bs) lss rss) = Just $ Tree r ((Context (item:ls) x rs) : bs) lss rss
+nextSibling tz = case rights' tz of
+    []          -> Nothing
+    next : rest -> down (RT.datum next) =<< up tz
 
 
 previousSibling :: Eq a => TreeZipper a -> Maybe (TreeZipper a)
-previousSibling (Root _) = Nothing
-previousSibling (Tree x [] [] _) = Nothing
-previousSibling (Tree x [] (l:ls) rs) = Just $ Tree l [] ls (x:rs)
-previousSibling (Tree item ((Context [] x _): _) _ _) = Nothing
-previousSibling (Tree item ((Context (l:ls) x rs) : bs) lss rss) = Just $ Tree l ((Context ls x (item:rs)) : bs) lss rss
+previousSibling tz = case lefts' tz of
+    []          -> Nothing
+    prev : rest -> down (RT.datum prev) =<< up tz
 
 
 nextSiblingOfAncestor :: Eq a => TreeZipper a -> Maybe (TreeZipper a)

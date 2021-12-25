@@ -24,7 +24,7 @@ children :: RoseTree a -> [RoseTree a]
 children (RoseTree _ xs) = xs
 
 
-fromTrie :: Trie String -> Forest String
+fromTrie :: Trie a -> Forest a
 fromTrie trie = Forest $ children trie
   where
     children = fmap (\(k, v) -> RoseTree k (children v)) . M.toList . T.map

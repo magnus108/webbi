@@ -10,7 +10,7 @@ data Trie a = Trie
     } deriving (Show, Eq)
 
 
-instance (Show a, Ord a) => Semigroup (Trie a) where
+instance (Ord a) => Semigroup (Trie a) where
     (Trie True m1) <> (Trie _    m2) = Trie True (M.unionWith (<>) m1 m2)
     (Trie _    m1) <> (Trie True m2) = Trie True (M.unionWith (<>) m1 m2)
     (Trie _    m1) <> (Trie _    m2) = Trie False (M.unionWith (<>) m1 m2)
@@ -24,6 +24,6 @@ fromList :: (Trie b -> a -> Trie b) -> [a] -> Trie b
 fromList f = foldl f empty
 
 
-insert :: Trie String -> [String] -> Trie String
+insert :: (Ord a) => Trie a -> [a] -> Trie a
 insert (Trie _ m) []       = Trie True m
 insert (Trie b m) (x : xs) = Trie b $ M.insertWith (<>) x (insert empty xs) m
