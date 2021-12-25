@@ -12,3 +12,4 @@ main = hakyll $ do
     compileTemplates
     compileRobots
     compileSitemap
+    compileAtom

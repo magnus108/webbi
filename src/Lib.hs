@@ -5,6 +5,7 @@ module Lib
     , compileTemplates
     , compileRobots
     , compileSitemap
+    , compileAtom
     )
 where
 
@@ -48,11 +49,30 @@ root :: String
 root = "MISSING"
 
 
+feedConfiguration :: FeedConfiguration
+feedConfiguration =
+    FeedConfiguration
+        { feedTitle       = "Magnus Møller"
+        , feedDescription = "Something cool"
+        , feedAuthorName  = "Magnus Møller"
+        , feedAuthorEmail = "magnus108@me.com"
+        , feedRoot        = root
+        }
+
+compileAtom :: Rules ()
+compileAtom = create ["atom.xml"] $ do
+    route idRoute
+    compile $ do
+        let feedCtx = postCtx <> bodyField "description"
+        posts <- fmap (take 10) . recentFirst =<< loadAllSnapshots content "content"
+        renderAtom feedConfiguration feedCtx posts
+
+
 compileSitemap :: Rules ()
 compileSitemap = create ["sitemap.xml"] $ do
     route idRoute
     compile $ do
-        pages <- loadAll content :: Compiler [Item String]
+        pages <- recentFirst =<< loadAll content :: Compiler [Item String]
         singlePages <- loadAll (fromList ["index.html"])
         let allPages = pages <> singlePages
         let sitemapCtx = constField "root" root <>
@@ -62,8 +82,8 @@ compileSitemap = create ["sitemap.xml"] $ do
 
 postCtx :: Context String
 postCtx =
-    -- MANGLER DATO HER!
     constField "root" root <>
+    dateField "date" "%Y-%m-%d" <>
     defaultContext
 
 
@@ -136,6 +156,7 @@ compileMarkdown = match content $ do
         ctx <- contentContext
         pandocCompiler
             >>= loadAndApplyTemplate "templates/content.html" ctx
+            >>= saveSnapshot "content"
             >>= loadAndApplyTemplate "templates/default.html" ctx
             >>= relativizeUrls
 
