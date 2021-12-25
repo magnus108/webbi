@@ -3,6 +3,8 @@ module Lib
     , compileMenu
     , compileContent
     , compileTemplates
+    , compileRobots
+    , compileSitemap
     )
 where
 
@@ -42,6 +44,28 @@ styles = "**css/*.hs"
 content :: Pattern
 content = "**/index.md"
 
+root :: String
+root = "MISSING"
+
+
+compileSitemap :: Rules ()
+compileSitemap = create ["sitemap.xml"] $ do
+    route idRoute
+    compile $ do
+        pages <- loadAll content :: Compiler [Item String]
+        singlePages <- loadAll (fromList ["index.html"])
+        let allPages = pages <> singlePages
+        let sitemapCtx = constField "root" root <>
+                         listField "pages" postCtx (return allPages)
+
+        makeItem "" >>= loadAndApplyTemplate "templates/sitemap.xml" sitemapCtx
+
+postCtx :: Context String
+postCtx =
+    -- MANGLER DATO HER!
+    constField "root" root <>
+    defaultContext
+
 
 compileTemplates :: Rules ()
 compileTemplates = match "templates/*" $ compile templateBodyCompiler
@@ -76,6 +100,12 @@ compileContent = do
     compileMenu
     compileMarkdown
     compileFrontPage
+
+
+compileRobots :: Rules ()
+compileRobots = match "robots.txt" $ do
+    route   idRoute
+    compile copyFileCompiler
 
 
 compileFrontPage :: Rules ()

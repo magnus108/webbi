@@ -10,3 +10,5 @@ main = hakyll $ do
     compileMenu
     compileContent
     compileTemplates
+    compileRobots
+    compileSitemap
