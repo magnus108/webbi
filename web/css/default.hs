@@ -8,6 +8,8 @@ import qualified Data.Text.Lazy.IO             as T
 primaryBoxShadow :: Css
 primaryBoxShadow = boxShadowWithSpread nil (px 2) (px 5) nil (rgba 0 0 0 0.3)
 
+secondaryBoxShadow :: Css
+secondaryBoxShadow = boxShadow $ pure $ bsColor (rgba 0 0 0 0.3) (shadow (px 10) (px 11))
 
 darkPrimaryColor :: Color
 darkPrimaryColor = "#0097A7"
@@ -61,10 +63,13 @@ styleMenu = do
         FB.flex 1 1 auto
         display flex
     ".menu-link" ? do
-        ":hover" & backgroundColor "#f9f9f9"
+        ":hover" & do
+            backgroundColor "#f9f9f9"
+            secondaryBoxShadow
         linkStyle
     ".menu-link-selection" ? do
         backgroundColor accentColor
+        secondaryBoxShadow
         linkStyle
 
 

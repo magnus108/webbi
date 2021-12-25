@@ -28,7 +28,9 @@ library
       Lib
       Webbi.Css
       Webbi.Menu
+      Webbi.Utils.Arbitrary.Instances
       Webbi.Utils.Free
+      Webbi.Utils.ListZipper
       Webbi.Utils.RoseTree
       Webbi.Utils.TreeZipper
       Webbi.Utils.Trie

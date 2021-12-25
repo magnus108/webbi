@@ -40,7 +40,7 @@ styles :: Pattern
 styles = "**css/*.hs"
 
 content :: Pattern
-content = "**index.md"
+content = "**/index.md"
 
 
 compileTemplates :: Rules ()
@@ -75,6 +75,18 @@ compileContent :: Rules ()
 compileContent = do
     compileMenu
     compileMarkdown
+    compileFrontPage
+
+
+compileFrontPage :: Rules ()
+compileFrontPage = match "index.html" $ do
+        route idRoute
+        compile $ do
+            ctx <- contentContext -- OVervej at lave denne anderledes
+            getResourceBody
+                >>= applyAsTemplate ctx
+                >>= loadAndApplyTemplate "templates/default.html" ctx
+                >>= relativizeUrls
 
 
 compileMenu :: Rules ()

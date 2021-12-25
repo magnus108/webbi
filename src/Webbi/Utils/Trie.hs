@@ -3,8 +3,6 @@ module Webbi.Utils.Trie where
 
 import qualified Data.Map                      as M
 
-import Debug.Trace
-
 
 data Trie a = Trie
     { exists :: Bool

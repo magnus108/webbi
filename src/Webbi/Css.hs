@@ -36,5 +36,9 @@ showLink :: FilePath -> H.Html
 showLink path = H.link ! A.rel "stylesheet" ! A.href (fromString ("/"++ path))
 
 
+collectLeafs :: FilePath -> TZ.TreeZipper FilePath -> [TZ.TreeZipper FilePath]
+collectLeafs path tz = TZ.children =<< (maybeToList (TZ.down path tz))
+
+
 showCss :: Css -> H.Html
-showCss (Css tz) = mapM_ showLink (TZ.path' =<< (TZ.collectLeafs "css/" =<< (TZ.parents tz)))
+showCss (Css tz) = mapM_ showLink (TZ.path =<< (collectLeafs "css/" =<< (TZ.parents tz)))
