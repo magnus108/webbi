@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title>Magnus Møller</title>
+    <link href="MISSING/atom.xml" rel="self" />
+    <link href="MISSING" />
+    <id>MISSING/atom.xml</id>
+    <author>
+        <name>Magnus Møller</name>
+        <email>magnus108@me.com</email>
+    </author>
+    <updated>2015-06-26T00:00:00Z</updated>
+    <entry>
+    <title>index</title>
+    <link href="MISSING/test/index.html" />
+    <id>MISSING/test/index.html</id>
+    <published>2015-06-26T00:00:00Z</published>
+    <updated>2015-06-26T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<article>
+    <section class="header">
+        
+    </section>
+    <section>
+        
+    </section>
+</article>
+]]></summary>
+</entry>
+<entry>
+    <title>Projects</title>
+    <link href="MISSING/projects/index.html" />
+    <id>MISSING/projects/index.html</id>
+    <published>2015-06-26T00:00:00Z</published>
+    <updated>2015-06-26T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<article>
+    <section class="header">
+        
+    </section>
+    <section>
+        <p>This is great stuff.</p>
+    </section>
+</article>
+]]></summary>
+</entry>
+<entry>
+    <title>index</title>
+    <link href="MISSING/projects/chair/index.html" />
+    <id>MISSING/projects/chair/index.html</id>
+    <published>2015-06-26T00:00:00Z</published>
+    <updated>2015-06-26T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<article>
+    <section class="header">
+        
+    </section>
+    <section>
+        
+    </section>
+</article>
+]]></summary>
+</entry>
+<entry>
+    <title>index</title>
+    <link href="MISSING/posts/profunctors/index.html" />
+    <id>MISSING/posts/profunctors/index.html</id>
+    <published>2015-06-26T00:00:00Z</published>
+    <updated>2015-06-26T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<article>
+    <section class="header">
+        
+    </section>
+    <section>
+        
+    </section>
+</article>
+]]></summary>
+</entry>
+<entry>
+    <title>index</title>
+    <link href="MISSING/posts/monads/index.html" />
+    <id>MISSING/posts/monads/index.html</id>
+    <published>2015-06-26T00:00:00Z</published>
+    <updated>2015-06-26T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<article>
+    <section class="header">
+        
+    </section>
+    <section>
+        
+    </section>
+</article>
+]]></summary>
+</entry>
+<entry>
+    <title>index</title>
+    <link href="MISSING/posts/index.html" />
+    <id>MISSING/posts/index.html</id>
+    <published>2015-06-26T00:00:00Z</published>
+    <updated>2015-06-26T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<article>
+    <section class="header">
+        
+    </section>
+    <section>
+        
+    </section>
+</article>
+]]></summary>
+</entry>
+<entry>
+    <title>index</title>
+    <link href="MISSING/posts/functors/index.html" />
+    <id>MISSING/posts/functors/index.html</id>
+    <published>2015-06-26T00:00:00Z</published>
+    <updated>2015-06-26T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<article>
+    <section class="header">
+        
+    </section>
+    <section>
+        
+    </section>
+</article>
+]]></summary>
+</entry>
+<entry>
+    <title>index</title>
+    <link href="MISSING/posts/bifunctors/lol2/index.html" />
+    <id>MISSING/posts/bifunctors/lol2/index.html</id>
+    <published>2015-06-26T00:00:00Z</published>
+    <updated>2015-06-26T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<article>
+    <section class="header">
+        
+    </section>
+    <section>
+        
+    </section>
+</article>
+]]></summary>
+</entry>
+<entry>
+    <title>index</title>
+    <link href="MISSING/posts/bifunctors/lol/index.html" />
+    <id>MISSING/posts/bifunctors/lol/index.html</id>
+    <published>2015-06-26T00:00:00Z</published>
+    <updated>2015-06-26T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<article>
+    <section class="header">
+        
+    </section>
+    <section>
+        
+    </section>
+</article>
+]]></summary>
+</entry>
+<entry>
+    <title>index</title>
+    <link href="MISSING/posts/bifunctors/index.html" />
+    <id>MISSING/posts/bifunctors/index.html</id>
+    <published>2015-06-26T00:00:00Z</published>
+    <updated>2015-06-26T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<article>
+    <section class="header">
+        
+    </section>
+    <section>
+        
+    </section>
+</article>
+]]></summary>
+</entry>
+
+</feed>

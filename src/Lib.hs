@@ -64,7 +64,7 @@ compileAtom = create ["atom.xml"] $ do
     route idRoute
     compile $ do
         let feedCtx = postCtx <> bodyField "description"
-        posts <- fmap (take 10) . recentFirst =<< loadAllSnapshots content "content"
+        posts <- fmap (take 10) . recentFirst =<< loadAllSnapshots (content .&&. hasNoVersion) "content"
         renderAtom feedConfiguration feedCtx posts
 
 

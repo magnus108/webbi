@@ -14,183 +14,183 @@
   </url>
 
   <url>
-    <loc>MISSING/about/index.html</loc>
-    <lastmod></lastmod>
+    <loc>MISSING</loc>
+    <lastmod>2015-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>MISSING/contact/index.html</loc>
-    <lastmod></lastmod>
+    <loc>MISSING</loc>
+    <lastmod>2015-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>MISSING/posts/applicative/index.html</loc>
-    <lastmod></lastmod>
+    <loc>MISSING</loc>
+    <lastmod>2015-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>MISSING/posts/bifunctors/index.html</loc>
-    <lastmod></lastmod>
+    <loc>MISSING</loc>
+    <lastmod>2015-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>MISSING/posts/bifunctors/lol/index.html</loc>
-    <lastmod></lastmod>
+    <loc>MISSING</loc>
+    <lastmod>2015-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>MISSING/posts/bifunctors/lol2/index.html</loc>
-    <lastmod></lastmod>
+    <loc>MISSING</loc>
+    <lastmod>2015-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>MISSING/posts/functors/index.html</loc>
-    <lastmod></lastmod>
+    <loc>MISSING</loc>
+    <lastmod>2015-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>MISSING/posts/index.html</loc>
-    <lastmod></lastmod>
+    <loc>MISSING</loc>
+    <lastmod>2015-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>MISSING/posts/monads/index.html</loc>
-    <lastmod></lastmod>
+    <loc>MISSING</loc>
+    <lastmod>2015-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>MISSING/posts/profunctors/index.html</loc>
-    <lastmod></lastmod>
+    <loc>MISSING</loc>
+    <lastmod>2015-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>MISSING/projects/chair/index.html</loc>
-    <lastmod></lastmod>
+    <loc>MISSING</loc>
+    <lastmod>2015-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>MISSING/projects/index.html</loc>
-    <lastmod></lastmod>
+    <loc>MISSING</loc>
+    <lastmod>2015-06-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>MISSING</loc>
+    <lastmod>2015-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
     <loc>MISSING/test/index.html</loc>
-    <lastmod></lastmod>
+    <lastmod>2015-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>MISSING</loc>
-    <lastmod></lastmod>
+    <loc>MISSING/projects/index.html</loc>
+    <lastmod>2015-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>MISSING</loc>
-    <lastmod></lastmod>
+    <loc>MISSING/projects/chair/index.html</loc>
+    <lastmod>2015-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>MISSING</loc>
-    <lastmod></lastmod>
+    <loc>MISSING/posts/profunctors/index.html</loc>
+    <lastmod>2015-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>MISSING</loc>
-    <lastmod></lastmod>
+    <loc>MISSING/posts/monads/index.html</loc>
+    <lastmod>2015-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>MISSING</loc>
-    <lastmod></lastmod>
+    <loc>MISSING/posts/index.html</loc>
+    <lastmod>2015-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>MISSING</loc>
-    <lastmod></lastmod>
+    <loc>MISSING/posts/functors/index.html</loc>
+    <lastmod>2015-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>MISSING</loc>
-    <lastmod></lastmod>
+    <loc>MISSING/posts/bifunctors/lol2/index.html</loc>
+    <lastmod>2015-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>MISSING</loc>
-    <lastmod></lastmod>
+    <loc>MISSING/posts/bifunctors/lol/index.html</loc>
+    <lastmod>2015-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>MISSING</loc>
-    <lastmod></lastmod>
+    <loc>MISSING/posts/bifunctors/index.html</loc>
+    <lastmod>2015-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>MISSING</loc>
-    <lastmod></lastmod>
+    <loc>MISSING/posts/applicative/index.html</loc>
+    <lastmod>2015-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>MISSING</loc>
-    <lastmod></lastmod>
+    <loc>MISSING/contact/index.html</loc>
+    <lastmod>2015-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>MISSING</loc>
-    <lastmod></lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <url>
-    <loc>MISSING</loc>
-    <lastmod></lastmod>
+    <loc>MISSING/about/index.html</loc>
+    <lastmod>2015-06-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
