@@ -111,11 +111,14 @@ generalStyle = do
 
     ".front-description" ? do
         FB.flex 1 0 auto
+        padding (S.rem 1) (S.rem 0.66) (S.rem 0.66) (S.rem 3)
 
     ".front-link" ? do
         fontSize (S.rem 3)
         FB.flex 0 0 auto
-        padding (S.rem 0) (S.rem 3) (S.rem 0) (S.rem 0)
+        padding (S.rem 0.66) (S.rem 0.66) (S.rem 0.66) (S.rem 0.66)
+        secondaryBoxShadow
+        backgroundColor "#ffffb5"
 
     ".footer-list" ? do
         marginTop (S.rem 1)
