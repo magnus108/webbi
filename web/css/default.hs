@@ -87,6 +87,7 @@ generalStyle = do
         marginLeft auto
         marginRight auto
         maxWidth (px 1140)
+        FB.flex 1 1 auto
 
     ".title" ? do
         fontSize (S.rem 2)
@@ -116,12 +117,12 @@ generalStyle = do
         FB.flex 0 0 auto
         padding (S.rem 0) (S.rem 3) (S.rem 0) (S.rem 0)
 
-
-    ".footer" ? do
+    ".footer-list" ? do
         marginTop (S.rem 1)
         marginLeft auto
         marginRight auto
         maxWidth (px 1140)
+        minHeight (S.rem 4)
 
     ".section" ? do
         padding (S.rem 0) (S.rem 0) (S.rem 1) (S.rem 0)
@@ -130,6 +131,9 @@ generalStyle = do
     body ? do
         color "#563D7C"
         fontFamily [] [monospace]
+        display flex
+        flexFlow column FB.nowrap
+        minHeight (vh 100)
 
 styleAll :: Css
 styleAll = do
