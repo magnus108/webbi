@@ -124,6 +124,9 @@ generalStyle = do
         maxWidth (px 1140)
         minHeight (S.rem 4)
 
+    ".footer-link" ? do
+        padding (S.rem 0) (S.rem 0) (S.rem 1) (S.rem 0)
+
     ".section" ? do
         padding (S.rem 0) (S.rem 0) (S.rem 1) (S.rem 0)
         fontSize (S.rem 1)

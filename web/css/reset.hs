@@ -124,7 +124,7 @@ styleMenu = do
         lineHeight (unitless 1)
 
     ol <> ul ? do
-        listStyle none none none
+        listStyleType none
 
     table ? do
         borderCollapse collapse
