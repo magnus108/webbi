@@ -45,6 +45,10 @@ style :: H.AttributeValue
 style = "menu"
 
 showMenu :: Menu -> H.Html
+showMenu (Menu (TZ.Root xs)) = do
+    H.header ! A.class_ "header" $ H.nav ! A.class_ style $ do 
+        let itemStyle = style <> "-link"
+        ((H.ul ! A.class_ (style <> "-level")) . F.foldMapM (H.li ! A.class_ (style <> "-item"))) $ catMaybes $ fmap (showItem' itemStyle . TZ.fromRoseTree) xs
 showMenu (Menu tz) = do
     let h = TZ.hierachy tz
     H.header ! A.class_ "header" $ H.nav ! A.class_ style $ mapM_ showItems' h

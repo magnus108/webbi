@@ -79,6 +79,7 @@ linkStyle = do
     padding1 (S.rem 1)
     ".focus" & fontWeight bold
 
+
 generalStyle :: Css
 generalStyle = do
     ".main" ? do
@@ -89,16 +90,42 @@ generalStyle = do
 
     ".title" ? do
         fontSize (S.rem 2)
+        padding (S.rem 0) (S.rem 0) (S.rem 2) (S.rem 0)
 
     ".header" ? do
         primaryBoxShadow
         backgroundColor darkPrimaryColor
+
+    ".front" ? do
+        backgroundColor "#f5f5dc"
+
+    ".front-container" ? do
+        marginLeft auto
+        marginRight auto
+        maxWidth (px 1140)
+        display flex
+        padding (S.rem 2) (S.rem 1) (S.rem 2) (S.rem 1)
+        alignItems baseline
+        flexFlow row FB.wrap
+
+    ".front-description" ? do
+        FB.flex 1 0 auto
+
+    ".front-link" ? do
+        fontSize (S.rem 3)
+        FB.flex 0 0 auto
+        padding (S.rem 0) (S.rem 3) (S.rem 0) (S.rem 0)
+
 
     ".footer" ? do
         marginTop (S.rem 1)
         marginLeft auto
         marginRight auto
         maxWidth (px 1140)
+
+    ".section" ? do
+        padding (S.rem 0) (S.rem 0) (S.rem 1) (S.rem 0)
+        fontSize (S.rem 1)
 
     body ? do
         color "#563D7C"

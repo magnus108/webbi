@@ -132,7 +132,7 @@ compileFrontPage :: Rules ()
 compileFrontPage = match "index.html" $ do
         route idRoute
         compile $ do
-            ctx <- contentContext -- OVervej at lave denne anderledes
+            ctx <- contentContext
             getResourceBody
                 >>= applyAsTemplate ctx
                 >>= loadAndApplyTemplate "templates/default.html" ctx
@@ -168,7 +168,6 @@ contentContext = do
     return
         $  constField "menu" menu
         <> constField "css"  css
-        <> field "title" (return . F.title . toFilePath . itemIdentifier)
         <> defaultContext
 
 
