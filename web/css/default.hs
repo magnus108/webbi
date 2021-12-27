@@ -97,10 +97,6 @@ generalStyle = do
         FB.flex 1 1 auto
         width (pct 100)
 
-    ".title" ? do
-        fontSize (S.rem 2)
-        padding (S.rem 0) (S.rem 0) (S.rem 2) (S.rem 0)
-
     ".header" ? do
         primaryBoxShadow
         backgroundColor darkPrimaryColor
@@ -161,10 +157,6 @@ generalStyle = do
         backgroundColor "#ffffb5"
         ":hover" & do
             backgroundColor "#f9f9f9"
-
-    ".section" ? do
-        padding (S.rem 0) (S.rem 0) (S.rem 1) (S.rem 0)
-        fontSize (S.rem 1)
 
     body ? do
         color "#563D7C"
