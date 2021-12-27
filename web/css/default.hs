@@ -88,6 +88,7 @@ generalStyle = do
         marginRight auto
         maxWidth (px 1140)
         FB.flex 1 1 auto
+        width (pct 100)
 
     ".title" ? do
         fontSize (S.rem 2)
@@ -105,7 +106,7 @@ generalStyle = do
         marginRight auto
         maxWidth (px 1140)
         display flex
-        padding (S.rem 2) (S.rem 1) (S.rem 2) (S.rem 1)
+        padding (S.rem 2) (S.rem 0) (S.rem 2) (S.rem 0)
         alignItems baseline
         flexFlow row FB.wrap
 
@@ -134,7 +135,6 @@ generalStyle = do
         marginRight auto
         maxWidth (px 1140)
         minHeight (S.rem 4)
-        padding (S.rem 0) (S.rem 1) (S.rem 0) (S.rem 1)
 
     ".footer-item" ? do
         display flex
