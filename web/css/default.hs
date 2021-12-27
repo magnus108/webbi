@@ -53,20 +53,27 @@ padding1 x = padding x x x x
 
 styleMenu :: Css
 styleMenu = do
+
     ".menu" ? do
         marginLeft auto
         marginRight auto
         maxWidth (px 1140)
+
     ".menu-level" ? do
         display flex
+        padding nil nil nil nil
+        margin nil auto nil auto
+
     ".menu-item" ? do
         FB.flex 1 1 auto
         display flex
+
     ".menu-link" ? do
         ":hover" & do
             backgroundColor "#f9f9f9"
             secondaryBoxShadow
         linkStyle
+
     ".menu-link-selection" ? do
         backgroundColor accentColor
         secondaryBoxShadow
@@ -126,13 +133,19 @@ generalStyle = do
     ".footer" ? do
         backgroundColor "#ffa500"
         boxShadow $ pure $ bsColor (rgba 0 0 0 0.3) (shadowWithBlur (px 0) (px 0) (px 8))
+        padding (S.rem 1) (S.rem 0) (S.rem 0) (S.rem 0)
+
+    ".subfooter-container" ? do
+        marginLeft auto
+        marginRight auto
+        maxWidth (px 1140)
+        padding (S.rem 1) (S.rem 0) (S.rem 1) (S.rem 0)
 
     ".footer-list" ? do
         display flex
         flexFlow column FB.nowrap
-        marginTop (S.rem 1)
-        marginLeft auto
-        marginRight auto
+        padding nil nil nil nil
+        margin nil auto nil auto
         maxWidth (px 1140)
         minHeight (S.rem 4)
 
