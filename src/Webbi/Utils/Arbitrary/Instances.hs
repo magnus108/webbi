@@ -8,13 +8,29 @@ import           Webbi.Utils.RoseTree           ( RoseTree
 import qualified Webbi.Utils.RoseTree          as RT
 import qualified Webbi.Utils.Trie              as T
 import Data.Maybe
+import Data.List
 import Control.Monad
 
+import Debug.Trace
 
-instance (Ord a, Arbitrary a) => Arbitrary (TreeZipper a) where
-    arbitrary = frequency [(1, tree)
-                          ,(2, (\t -> fromMaybe t (firstChild t)) <$> tree)
-                          ,(3, (\t -> fromMaybe t (firstChild =<< (firstChild t))) <$> tree)
-                          ]
+instance (Eq a, Arbitrary a) => Arbitrary (RoseTree a) where
+    arbitrary = sized gen
+        where 
+            gen 0 = RT.RoseTree <$> arbitrary <*> (return [])
+            gen n = RT.RoseTree <$> arbitrary <*> (fmap nub (vectorOf (n `div` 2) (gen (n `div` 2))))
+
+
+instance (Eq a, Arbitrary a) => Arbitrary (TreeZipper a) where
+    arbitrary = sized gen
         where
-            tree = (fromForest . RT.fromTrie . T.fromList T.insert) <$> arbitrary
+            gen 0 = fromRoseTree <$> arbitrary
+            gen n = randomWalk 4 =<< (fromRoseTree <$> arbitrary)
+
+randomWalk :: Eq a => Int -> TreeZipper a -> Gen (TreeZipper a)
+randomWalk 0 t = return t
+randomWalk s t = do
+        let children' = children t
+        s' <- choose (0, (length children')-1)
+        let child = children' !! s'
+        let t' = fromMaybe t Nothing --(down (head (datum child)) t)
+        randomWalk (s - 1) t'

@@ -169,7 +169,7 @@ nextSiblingOfAncestor tz = case up tz of
         Just s  -> Just s
 
 
-navigateTo :: (Eq a, Show a) => [a] -> TreeZipper a -> TreeZipper a
+navigateTo :: (Eq a) => [a] -> TreeZipper a -> TreeZipper a
 navigateTo routes item = find routes item
   where
     find []       m = m
@@ -178,7 +178,7 @@ navigateTo routes item = find routes item
         Just y  -> find xs y
 
 
-navigateTo' :: (Eq a, Show a) => [a] -> TreeZipper a -> Maybe (TreeZipper a)
+navigateTo' :: (Eq a) => [a] -> TreeZipper a -> Maybe (TreeZipper a)
 navigateTo' routes item = find routes item
   where
     find []       m = Just m

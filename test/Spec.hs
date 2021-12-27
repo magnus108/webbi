@@ -169,3 +169,4 @@ unitTests = testGroup "Unit tests"
         (forward =<< firstFirstChild') @?= (down 3 =<< firstChild')
     ]
 
+

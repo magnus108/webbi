@@ -119,16 +119,35 @@ generalStyle = do
         padding (S.rem 0.66) (S.rem 0.66) (S.rem 0.66) (S.rem 0.66)
         secondaryBoxShadow
         backgroundColor "#ffffb5"
+        ":hover" & do
+            backgroundColor "#f9f9f9"
+
+    ".footer" ? do
+        backgroundColor "#ffa500"
+        boxShadow $ pure $ bsColor (rgba 0 0 0 0.3) (shadowWithBlur (px 0) (px 0) (px 8))
 
     ".footer-list" ? do
+        display flex
+        flexFlow column FB.nowrap
         marginTop (S.rem 1)
         marginLeft auto
         marginRight auto
         maxWidth (px 1140)
         minHeight (S.rem 4)
+        padding (S.rem 0) (S.rem 1) (S.rem 0) (S.rem 1)
+
+    ".footer-item" ? do
+        display flex
+        FB.flex 0 0 auto
+        padding (S.rem 0) (S.rem 0) (S.rem 1) (S.rem 0)
 
     ".footer-link" ? do
-        padding (S.rem 0) (S.rem 0) (S.rem 1) (S.rem 0)
+        FB.flex 0 0 auto
+        padding (S.rem 0.66) (S.rem 0.66) (S.rem 0.66) (S.rem 0.66)
+        secondaryBoxShadow
+        backgroundColor "#ffffb5"
+        ":hover" & do
+            backgroundColor "#f9f9f9"
 
     ".section" ? do
         padding (S.rem 0) (S.rem 0) (S.rem 1) (S.rem 0)
