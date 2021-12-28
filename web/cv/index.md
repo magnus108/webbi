@@ -5,7 +5,9 @@ date: 2015-06-26
 ---
 
 # Magnus Møller
-<https://magnus108.github.io/>
+
+[magnus108.github.io](https://magnus108.github.io/)
+
 <magnus108@me.com>
 
 ## Education

@@ -6,6 +6,7 @@ module Lib
     , compileRobots
     , compileSitemap
     , compileAtom
+    , compileImages
     )
 where
 
@@ -17,6 +18,7 @@ import           Text.Blaze.Html.Renderer.String
                                                 ( renderHtml )
 import           System.FilePath                ( splitPath
                                                 , dropFileName
+                                                , takeFileName
                                                 , takeBaseName
                                                 , replaceFileName
                                                 , takeDirectory
@@ -41,6 +43,9 @@ import qualified Text.Blaze.Html5.Attributes   as A
 
 styles :: Pattern
 styles = "**css/*.hs"
+
+images :: Pattern
+images = "**images/*.jpg"
 
 content :: Pattern
 content = "**/index.md"
@@ -192,3 +197,9 @@ getMenu = do
             items <- loadAll $ fromVersion $ Just "menu"
             let menu = M.fromTreeZipper $ TZ.fromList r $ fmap itemBody items
             return $ renderHtml $ M.showMenu menu
+
+compileImages :: Rules ()
+compileImages =
+    match images $ do
+      route $ customRoute $ \x -> "images" </> (takeFileName (toFilePath x))
+      compile copyFileCompiler

@@ -13,3 +13,4 @@ main = hakyll $ do
     compileRobots
     compileSitemap
     compileAtom
+    compileImages

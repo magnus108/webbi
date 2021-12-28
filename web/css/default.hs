@@ -97,6 +97,18 @@ generalStyle = do
         FB.flex 1 1 auto
         width (pct 100)
 
+    ".headshot" ? do
+        borderRadius (S.rem 1.2) (S.rem 1.2) (S.rem 1.2) (S.rem 1.2)
+        boxShadow $ pure $ bsColor (rgba 0 0 0 0.3) (shadowWithBlur (px 4) (px 4) (px 20))
+        transition "all" (sec 0.3) ease (sec 0)
+        border dashed (S.rem 0.2) "#ffa5ff"
+        ":hover" & do
+            boxShadow $ pure $ bsColor (rgba 0 0 0 0.3) (shadowWithBlur (px 8) (px 8) (px 20))
+
+    ".about" ? do
+        margin (S.rem 0) (S.rem 0) (S.rem 4) (S.rem 0)
+
+
     ".header" ? do
         primaryBoxShadow
         backgroundColor darkPrimaryColor

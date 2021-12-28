@@ -21,13 +21,30 @@ tests :: TestTree
 tests = testGroup "Tests" [unitTests, quickChecks]
 
 
+summarize :: TreeZipper Int -> String
+summarize (Root []              ) = "empty root"
+summarize (Root _               ) = "root"
+summarize (Tree item ctx lss rss) = "tree" ++ isLeaf item ++ (hasRoots (lss ++ rss)) ++ (hasCtx ctx)
+    where
+        isLeaf (RoseTree x []) = ", is leaf"
+        isLeaf (RoseTree x xs) = ", is branch"
+        hasRoots [] = ", no roots"
+        hasRoots xs = ", has roots"
+        hasCtx [] = ", no ctx"
+        hasCtx ((Context [] x []):xss)= ", has ctx with no siblings"
+        hasCtx ((Context ls x rs):xss)= ", has ctx with siblings"
+
+
 quickChecks :: TestTree
 quickChecks = testGroup "(checked by QuickCheck)"
-  [ QC.testProperty "up . firstChild is self" $
-        \(tz :: TreeZipper Int) -> (isJust (firstChild tz)) ==> ((up =<< (firstChild tz)) === (Just tz))
+  [ QC.testProperty "up . firstChild is self" $ withMaxSuccess 1000 $ gg
   , QC.testProperty "lefts/rights" $
-        \(tz :: TreeZipper Int) -> within 1000000 $ isJust (up tz) ==> (Just (lefts tz ++ (tz : (rights tz)))) === (children <$> up tz)
+        \(tz :: TreeZipper Int) -> label (summarize tz) $ isJust (up tz) ==> (Just (lefts tz ++ (tz : (rights tz)))) === (children <$> up tz)
   ]
+
+
+gg = \(tz :: TreeZipper Int) -> label (summarize tz) $ (isJust (firstChild tz)) ==> ((up =<< (firstChild tz)) === (Just tz))
+all_ = \(tz :: TreeZipper Int) -> label (summarize tz) $ True
 
 
 roseLeaf = RoseTree 3 []
