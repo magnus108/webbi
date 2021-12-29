@@ -16,9 +16,36 @@ import qualified Webbi.Utils.Trie as T
 main :: IO ()
 main = defaultMain tests
 
-
 tests :: TestTree
 tests = testGroup "Tests" [unitTests, quickChecks]
+
+
+hasCtxWithSiblings :: [Context a] -> Bool
+hasCtxWithSiblings [] = False
+hasCtxWithSiblings ((Context [] x []):xss) = False
+hasCtxWithSiblings ((Context ls x rs):xss) = True
+
+hasCtx :: [Context a] -> Bool
+hasCtx [] = False
+hasCtx _= True
+
+hasRoots :: TreeZipper a -> Bool
+hasRoots (Root _) = False
+hasRoots (Tree _ _ [] []) = False
+hasRoots (Tree _ _ ls rs) = True
+
+isLeaf :: TreeZipper a -> Bool
+isLeaf (Root _) = False
+isLeaf (Tree (RoseTree x []) _ _ _) = True
+isLeaf (Tree _ _ ls rs) = False
+
+isEmptyRoot :: TreeZipper a -> Bool
+isEmptyRoot (Root []) = True
+isEmptyRoot _ = False
+
+isRoot :: TreeZipper a -> Bool
+isRoot (Root _) = True
+isRoot _ = False
 
 
 summarize :: TreeZipper Int -> String
@@ -34,156 +61,33 @@ summarize (Tree item ctx lss rss) = "tree" ++ isLeaf item ++ (hasRoots (lss ++ r
         hasCtx ((Context [] x []):xss)= ", has ctx with no siblings"
         hasCtx ((Context ls x rs):xss)= ", has ctx with siblings"
 
-
 quickChecks :: TestTree
 quickChecks = testGroup "(checked by QuickCheck)"
-  [ QC.testProperty "up . firstChild is self" $ withMaxSuccess 1000 $ gg
-  , QC.testProperty "lefts/rights" $
-        \(tz :: TreeZipper Int) -> label (summarize tz) $ isJust (up tz) ==> (Just (lefts tz ++ (tz : (rights tz)))) === (children <$> up tz)
+  [ QC.testProperty "(up . down) is id"
+        $ \(tz :: TreeZipper Int) ->
+            (isJust (firstChild tz)) ==>
+                cover 40 (hasCtxWithSiblings (toContexts tz) && hasRoots tz && (not (isLeaf tz))) "tree, is branch, has roots, has ctx with siblings" $
+                cover 25 (not (hasCtxWithSiblings (toContexts tz)) && hasRoots tz && (not (isLeaf tz))) "tree, is branch, has roots, has ctx with no siblings" $
+                cover 5 (not (hasCtxWithSiblings (toContexts tz)) && (not (hasRoots tz)) && (not (isLeaf tz))) "tree, is branch, no roots, has ctx with no siblings" $
+                cover 5 ((hasCtxWithSiblings (toContexts tz)) && (hasRoots tz) && (not (isLeaf tz))) "tree, is branch, has roots, has ctx with siblings" $
+                cover 5 (isRoot tz) "root" $
+                cover 5 (isRoot tz) "tree, is branch, has roots, no ctx" $
+                cover 5 (isRoot tz) "tree, is branch, no roots, no ctx" $
+                    ((up =<< (firstChild tz)) === (Just tz))
+  , QC.testProperty "siblings are (children . up)" $
+        \(tz :: TreeZipper Int) ->
+            $ isJust (up tz) ==>
+                cover 35 (hasCtxWithSiblings (toContexts tz) && hasRoots tz && (not (isLeaf tz))) "tree, is branch, has roots, has ctx with siblings" $
+                cover 15 ((not (hasCtxWithSiblings (toContexts tz))) && hasRoots tz && (not (isLeaf tz))) "tree, is branch, has roots, has ctx with no siblings" $
+                cover 15 ((hasCtxWithSiblings (toContexts tz)) && (not (hasRoots tz)) && (not (isLeaf tz))) "tree, is branch, no roots, has ctx with siblings" $
+                cover 5 ((hasCtxWithSiblings (toContexts tz)) && (hasRoots tz)) && (isLeaf tz)) "tree, is leaf, has roots, has ctx with siblings" $
+                cover 5 ((not (hasCtxWithSiblings (toContexts tz))) && (not (hasRoots tz)) && (not (isLeaf tz))) "tree, is branch, no roots, has ctx with no siblings" $
+                cover 5 ((not (hasCtx (toContexts tz))) && (hasRoots tz) && (not (isLeaf tz))) "tree, is branch, has roots, no ctx" $
+                cover 1 ((not( hasCtxWithSiblings (toContexts tz)))&& (hasRoots tz) && (isLeaf tz)) "tree, is leaf, has roots, has ctx with no siblings" $
+                cover 1 ((not (hasCtx (toContexts tz))) && (not (hasRoots tz)) && (not(isLeaf tz))) "tree, is branch, no roots, no ctx" $
+                cover 1 ((not (hasCtxWithSiblings (toContexts tz))) && (not (hasRoots tz)) && (isLeaf tz)) "tree, is leaf, no roots, has ctx with no siblings" $
+                    (Just (lefts tz ++ (tz : (rights tz)))) === (children <$> up tz)
   ]
 
-
-gg = \(tz :: TreeZipper Int) -> label (summarize tz) $ (isJust (firstChild tz)) ==> ((up =<< (firstChild tz)) === (Just tz))
-all_ = \(tz :: TreeZipper Int) -> label (summarize tz) $ True
-
-
-roseLeaf = RoseTree 3 []
-roseLeaf1 = RoseTree 2 []
-roseTree = RoseTree 1 [roseLeaf1, roseLeaf]
-roseTree2 = RoseTree 10 [RoseTree 20 [], RoseTree 30 []]
-root = Root [roseTree, roseTree2]
-firstChild' = firstChild root
-secondChild' = nextSibling =<< firstChild'
-firstFirstChild' = firstChild =<< firstChild'
-firstSecondChild' = nextSibling =<< firstFirstChild'
-
-
-roseTree3 = RoseTree 100 [RoseTree 200 [], RoseTree 300 []]
-root2 = Root [roseTree, roseTree2, roseTree3 ]
-thirdChild' = down 100 root2
-secondChild2' = previousSibling =<< thirdChild'
-firstChild2' = previousSibling =<< secondChild2'
-root3 = Root [roseLeaf]
-
-
 unitTests :: TestTree
-unitTests = testGroup "Unit tests"
-    [ testCase "Up (on root)" $
-        up root @?= Nothing
-
-    , testCase "Up (on firstChild)" $
-        (up =<< firstChild') @?= (Just root)
-
-    , testCase "Up (on firstFirstChild)" $
-        (up =<< firstFirstChild') @?= (down 1 root)
-
-    , testCase "Down (on root)" $
-        down 1 root @?= Just (Tree (RoseTree 1 [RoseTree 2 [],RoseTree 3 []]) [] [] [RoseTree 10 [RoseTree 20 [],RoseTree 30 []]])
-
-    , testCase "Down (on firstChild)" $
-        (down 2 =<< firstChild') @?= Just (Tree (RoseTree 2 []) [Context [] 1 [RoseTree 3 []]] [] [RoseTree 10 [RoseTree 20 [],RoseTree 30 []]])
-
-    , testCase "Down (on firstFirstChild)" $
-        (down 2 =<< firstFirstChild') @?= Nothing
-
-    , testCase "Rights' (on root)" $
-        (rights' root) @?= []
-
-    , testCase "Rights' (on firstChild)" $
-        (rights' <$> firstChild') @?= Just [roseTree2]
-
-    , testCase "Rights' (on firstFirstChild)" $
-        (rights' <$> firstFirstChild') @?= Just [roseLeaf]
-
-    , testCase "Rights (on root)" $
-        rights root @?= []
-
-    , testCase "Rights (on firstChild)" $
-        (rights <$> firstChild') @?= sequence [down 10 root]
-
-    , testCase "Rights (on firstFirstChild)" $
-        (rights <$> firstFirstChild') @?= sequence [down 3 =<< down 1 root]
-
-    , testCase "Lefts (on root)" $
-        lefts root @?= []
-
-    , testCase "Lefts (on firstChild)" $
-        (lefts <$> firstChild') @?= (Just [])
-
-    , testCase "Lefts (on firstFirstChild)" $
-        (lefts <$> firstFirstChild') @?= (Just [])
-
-    , testCase "Children (on root)" $
-        children root @?= (catMaybes [down 1 root, down 10 root])
-
-    , testCase "Children (on firstChild)" $
-        (children <$> firstChild') @?= (Just (catMaybes [down 2 =<< down 1 root, down 3 =<< down 1 root]))
-
-    , testCase "Children (on firstFirstChild)" $
-        (children <$> firstFirstChild') @?= (Just [])
-
-    , testCase "firstChild (on root)" $
-        firstChild root @?= (down 1 root)
-
-    , testCase "firstChild (on firstChild)" $
-        (firstChild =<< firstChild') @?= (down 2 =<< down 1 root)
-
-    , testCase "firstChild (on firstFirstChild)" $
-        (firstChild =<< firstFirstChild') @?= Nothing
-
-    , testCase "toRoseTree (on root)" $
-        toRoseTree root @?= Nothing
-
-    , testCase "toRoseTree (on firstChild)" $
-        (toRoseTree =<< firstChild') @?= Just roseTree
-
-    , testCase "toRoseTree (on firstFirstChild)" $
-        (toRoseTree =<< firstFirstChild') @?= Just roseLeaf1
-
-    , testCase "nextSibling (on root)" $
-        nextSibling root @?= Nothing
-
-    , testCase "nextSibling (on firstChild)" $
-        (nextSibling =<< firstChild') @?= (down 10 root)
-
-    , testCase "nextSibling (on firstFirstChild)" $
-        (nextSibling =<< firstFirstChild') @?= (down 3 =<< down 1 root)
-
-    , testCase "previousSibling (on root)" $
-        previousSibling root @?= Nothing
-
-    , testCase "previousSibling (on secondChild')" $
-        (previousSibling =<< secondChild') @?= firstChild'
-
-    , testCase "previousSibling (on secondFirstChild')" $
-        (previousSibling =<< firstSecondChild') @?= firstFirstChild'
-
-    , testCase "nextSiblingOfAncestor (on root)" $
-        nextSiblingOfAncestor root @?= Nothing
-
-    , testCase "nextSiblingOfAncestor (on firstChild)" $
-        (nextSiblingOfAncestor =<< firstChild') @?= Nothing
-
-    , testCase "nextSiblingOfAncestor (on firstFirstChild)" $
-        (nextSiblingOfAncestor =<< firstFirstChild') @?= (down 10 root)
-
-    , testCase "leafs (on root)" $
-        leafs root @?= []
-
-    , testCase "leafs (on firstChild)" $
-        leafs <$> firstChild' @?= sequence [down 2 =<< firstChild', down 3 =<< firstChild']
-
-    , testCase "leafs (on firstFirstChild)" $
-        leafs <$> firstFirstChild' @?= (Just [])
-
-    , testCase "forward (on root)" $
-        forward root @?= (firstChild root)
-
-    , testCase "forward (on firstChild)" $
-        (forward =<< firstChild') @?= (down 2 =<< firstChild')
-
-    , testCase "forward (on firstFirstChild)" $
-        (forward =<< firstFirstChild') @?= (down 3 =<< firstChild')
-    ]
-
-
+unitTests = testGroup "Unit tests" []

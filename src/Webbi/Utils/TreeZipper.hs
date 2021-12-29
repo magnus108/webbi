@@ -51,6 +51,11 @@ toContext (Root _            ) = Nothing
 toContext (Tree _ (x : _) _ _) = Just x
 
 
+toContexts :: TreeZipper a -> [Context a]
+toContexts (Root _       ) = []
+toContexts (Tree _ xs _ _) = xs
+
+
 fromForest :: Forest a -> TreeZipper a
 fromForest (Forest xs) = Root xs
 

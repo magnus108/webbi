@@ -141,7 +141,7 @@ generalStyle = do
     ".footer" ? do
         backgroundColor "#ffa500"
         boxShadow $ pure $ bsColor (rgba 0 0 0 0.3) (shadowWithBlur (px 0) (px 0) (px 8))
-        padding (S.rem 1) (S.rem 0) (S.rem 0) (S.rem 0)
+        minHeight (S.rem 5)
 
     ".subfooter-container" ? do
         marginLeft auto
@@ -151,19 +151,16 @@ generalStyle = do
 
     ".footer-list" ? do
         display flex
-        flexFlow column FB.nowrap
+        flexFlow row FB.wrap
         padding nil nil nil nil
         margin nil auto nil auto
         maxWidth (px 1140)
-        minHeight (S.rem 4)
 
     ".footer-item" ? do
         display flex
-        FB.flex 0 0 auto
-        padding (S.rem 0) (S.rem 0) (S.rem 1) (S.rem 0)
+        margin (S.rem 1) (S.rem 1) (S.rem 1) (S.rem 1)
 
     ".footer-link" ? do
-        FB.flex 0 0 auto
         padding (S.rem 0.66) (S.rem 0.66) (S.rem 0.66) (S.rem 0.66)
         secondaryBoxShadow
         backgroundColor "#ffffb5"

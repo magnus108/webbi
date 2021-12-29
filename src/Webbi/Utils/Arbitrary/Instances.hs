@@ -29,7 +29,7 @@ instance (Eq a, Arbitrary a) => Arbitrary (TreeZipper a) where
             gen n = do
                 s'' <- choose (0, 4)
                 l <- nubBy (\x y -> (RT.datum x == (RT.datum y))) <$> (vectorOf s'' arbitrary)
-                s' <- choose (0, n*2)
+                s' <- choose (0, n+(n`div`2))
                 randomWalk s' (fromForest (RT.Forest l))
 
 
