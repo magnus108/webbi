@@ -76,11 +76,11 @@ quickChecks = testGroup "(checked by QuickCheck)"
                     ((up =<< (firstChild tz)) === (Just tz))
   , QC.testProperty "siblings are (children . up)" $
         \(tz :: TreeZipper Int) ->
-            $ isJust (up tz) ==>
+            (isJust (up tz)) ==>
                 cover 35 (hasCtxWithSiblings (toContexts tz) && hasRoots tz && (not (isLeaf tz))) "tree, is branch, has roots, has ctx with siblings" $
                 cover 15 ((not (hasCtxWithSiblings (toContexts tz))) && hasRoots tz && (not (isLeaf tz))) "tree, is branch, has roots, has ctx with no siblings" $
                 cover 15 ((hasCtxWithSiblings (toContexts tz)) && (not (hasRoots tz)) && (not (isLeaf tz))) "tree, is branch, no roots, has ctx with siblings" $
-                cover 5 ((hasCtxWithSiblings (toContexts tz)) && (hasRoots tz)) && (isLeaf tz)) "tree, is leaf, has roots, has ctx with siblings" $
+                cover 5 ((hasCtxWithSiblings (toContexts tz)) && (hasRoots tz) && (isLeaf tz)) "tree, is leaf, has roots, has ctx with siblings" $
                 cover 5 ((not (hasCtxWithSiblings (toContexts tz))) && (not (hasRoots tz)) && (not (isLeaf tz))) "tree, is branch, no roots, has ctx with no siblings" $
                 cover 5 ((not (hasCtx (toContexts tz))) && (hasRoots tz) && (not (isLeaf tz))) "tree, is branch, has roots, no ctx" $
                 cover 1 ((not( hasCtxWithSiblings (toContexts tz)))&& (hasRoots tz) && (isLeaf tz)) "tree, is leaf, has roots, has ctx with no siblings" $
