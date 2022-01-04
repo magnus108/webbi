@@ -10,15 +10,18 @@ module Lib
     , compileCV
     )
 where
+import Hakyll.Core.Compiler.Internal
 
 import Text.Pandoc.UTF8 (toStringLazy, fromText, toString, toText)
 import qualified Data.Text                  as T
 import qualified Data.ByteString.Lazy as BL
 import Data.Either
+import qualified System.Process       as Process
 
 import Text.Pandoc.PDF
 import qualified Text.Pandoc          as Pandoc
 
+import Control.Monad
 import           Debug.Trace
 import           Data.Maybe
 
@@ -32,6 +35,7 @@ import           System.FilePath                ( splitPath
                                                 , replaceFileName
                                                 , takeDirectory
                                                 , (</>)
+                                                , (-<.>)
                                                 )
 
 import           Hakyll
@@ -244,55 +248,38 @@ compileCV = do
     create ["cv.pdf"] $ do
         route idRoute
         compile $ do
-            readdd <- readPandoc =<< (load "cv.tex")
-            traceShowM "wtf"
-            traceShowM readdd
-            i <- mapM (\x -> unsafeCompiler $ Pandoc.runIOorExplode $ fmap (\x -> fromRight' (traceShow x x))
-                $ makePDF "pdflatex" [] Pandoc.writeLaTeX (defaultHakyllWriterOptions {Pandoc.writerReferenceLinks = True}) x) readdd
-            (makeItem (toStringLazy (itemBody i)))
-    create ["cv.tex"] $ do
-        route idRoute
-        compile $ do
-            g <- makeItem ""
-            readdd <- (load (setVersion (Just "latex") "cv/index.md"))
-            readd <- readPandoc readdd
-            i <- writeLaTex readd
-            let ctx = (constField "latex" (itemBody i)) <> defaultContext
-            tt <- loadAndApplyTemplate "templates/cv.tex" ctx g
-            return tt
-                {-
-            traceShowM "3"
-            traceShowM tt
-            ttt <- readLaTex tt
-            traceShowM "4"
-            --lol <-  mapM (\x -> unsafeCompiler $ Pandoc.runIOorExplode $ fmap (\x -> fromRight' (traceShow x x))
-             --           $ makePDF "pdflatex" [] Pandoc.writeLaTeX defaultHakyllWriterOptions x) ttt
-            traceShowM "5"
-            writeLaTex ttt
-            --return lol
-            --}
-             
+            i <- load (setVersion (Just "latex") "cv/index.md")
+                >>= readPandoc
+                >>= writeLaTex
+                >>= loadAndApplyTemplate "templates/cv.tex" defaultContext
+                >>= readPandoc
+
+            y <- forM i $ \x -> traceShow x $ unsafeCompiler $ Pandoc.runIOorExplode $ makePDF "pdflatex" [] Pandoc.writeLaTeX Pandoc.def x
+
+            makeItem (itemBody (fmap (fromRight') y))
 
 
 compileLatex :: Rules ()
 compileLatex = match content $ do
     version "latex" $ compile $ do
         item  <- getResourceBody
-        traceShowM "fucker"
-        traceShowM item
         return item
 
-    {-
-myWritePandocWith :: Pandoc.WriterOptions -> Item Pandoc.Pandoc -> Item String
-myWritePandocWith wopt (Item itemi doc) =
-    case Pandoc.runPure $ Pandoc.writeLaTeX wopt doc of
-        Left err    -> error $ "Hakyll.Web.Pandoc.writePandocWith: " ++ show err
-        Right item' -> Item itemi $ T.unpack item'
-            -}
 
-readLaTex :: Item String -> Compiler (Item Pandoc.Pandoc)
-readLaTex item = unsafeCompiler $ Pandoc.runIOorExplode $ mapM (Pandoc.readLaTeX Pandoc.def) (fmap (toText . fromString) item)
+latex :: Item String -> Compiler (Item TmpFile)
+latex item = do
+    TmpFile texPath <- newTmpFile "cv.tex"
 
+    let tmpDir  = takeDirectory texPath
+        pdfPath = texPath -<.> "pdf"
+
+    unsafeCompiler $ do
+            writeFile texPath $ itemBody item
+            _ <- Process.system $ unwords ["pdflatex", "--halt-on-error",
+                                    "-output-directory", tmpDir, texPath]
+            return ()
+
+    makeItem $ TmpFile pdfPath
 
 writeLaTex :: Item Pandoc.Pandoc -> Compiler (Item String)
-writeLaTex item = fmap (fmap (toString . fromText)) $ unsafeCompiler $ Pandoc.runIOorExplode $ mapM (Pandoc.writeLaTeX (Pandoc.def {Pandoc.writerReferenceLinks = True}) ) item
+writeLaTex item = fmap (fmap (toString . fromText)) $ unsafeCompiler $ Pandoc.runIOorExplode $ mapM (Pandoc.writeLaTeX Pandoc.def) item

@@ -53,6 +53,7 @@ library
     , filepath
     , hakyll
     , pandoc
+    , process
     , tasty
     , tasty-hunit
     , tasty-quickcheck
@@ -81,6 +82,7 @@ executable webbi-exe
     , filepath
     , hakyll
     , pandoc
+    , process
     , tasty
     , tasty-hunit
     , tasty-quickcheck
@@ -111,6 +113,7 @@ test-suite webbi-test
     , filepath
     , hakyll
     , pandoc
+    , process
     , tasty
     , tasty-hunit
     , tasty-quickcheck
