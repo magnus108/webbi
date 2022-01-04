@@ -173,7 +173,9 @@ compileMarkdown = match content $ do
     route $ setExtension "html"
     compile $ do
         ctx <- contentContext
-        pandocCompiler
+        getResourceBody
+            >>= saveSnapshot "pandoc"
+            >>= renderPandoc
             >>= loadAndApplyTemplate "templates/content.html" ctx
             >>= saveSnapshot "content"
             >>= loadAndApplyTemplate "templates/default.html" ctx
@@ -222,11 +224,10 @@ compileImages =
 
 compileCV :: Rules ()
 compileCV = do
-    compileLatex
     create ["cv.pdf"] $ do
         route idRoute
         compile $ do
-            i <- load (setVersion (Just "latex") "cv/index.md")
+            i <- loadSnapshot "cv/index.md" "pandoc"
                 >>= readPandoc
                 >>= writeLaTex
                 >>= loadAndApplyTemplate "templates/cv.tex" defaultContext
@@ -235,12 +236,6 @@ compileCV = do
 
             makeItem (itemBody (fmap (fromRight') i))
 
-
-compileLatex :: Rules ()
-compileLatex = match content $ do
-    version "latex" $ compile $ do
-        item  <- getResourceBody
-        return item
 
 
 writeLaTex :: Item Pandoc.Pandoc -> Compiler (Item String)
