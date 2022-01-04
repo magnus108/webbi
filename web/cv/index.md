@@ -1,10 +1,10 @@
 ---
 title: Curriculum Vitae
-description: Curriculum Vitae of Magnus Møller and other relevant material.
+description: Curriculum Vitae of Magnus Moller and other relevant material.
 date: 2015-06-26
 ---
 
-# Magnus Møller
+# Magnus Moller
 
 [magnus108.github.io](https://magnus108.github.io/)
 

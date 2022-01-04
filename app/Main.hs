@@ -14,3 +14,4 @@ main = hakyll $ do
     compileSitemap
     compileAtom
     compileImages
+    compileCV

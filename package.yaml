@@ -28,6 +28,9 @@ dependencies:
 - containers
 - filepath
 - extra
+- pandoc
+- text
+- bytestring
 
 - tasty
 - tasty-hunit
