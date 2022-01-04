@@ -220,28 +220,6 @@ compileImages =
       compile copyFileCompiler
 
 
-
-
-    {-
-compileCV :: Rules ()
-compileCV =
-    match "cv/index.md" $ version "pdf" $ do
-        route $ constRoute "cv.pdf"
-        compile $ do
-            i <- writeLaTex =<< readPandoc =<< getResourceBody
-            traceShowM "lol1"
-            tt <- loadAndApplyTemplate "templates/cv.tex" defaultContext i
-            traceShowM "lol2"
-            ttt <- readPandoc tt
-            traceShowM "lol3"
-            let tttt = myWritePandocWith defaultHakyllWriterOptions ttt
-            traceShowM "lol33"
-            lol <-  mapM (\x -> unsafeCompiler $ Pandoc.runIOorExplode $ fmap fromRight'
-                        $ makePDF "pdflatex" [] Pandoc.writeLaTeX defaultHakyllWriterOptions x) ttt
-            traceShowM "lol4"
-            return $ lol
-            -}
-
 compileCV :: Rules ()
 compileCV = do
     compileLatex
@@ -253,10 +231,9 @@ compileCV = do
                 >>= writeLaTex
                 >>= loadAndApplyTemplate "templates/cv.tex" defaultContext
                 >>= readPandoc
+                >>= mapM (unsafeCompiler . Pandoc.runIOorExplode . makePDF "pdflatex" [] Pandoc.writeLaTeX Pandoc.def)
 
-            y <- forM i $ \x -> traceShow x $ unsafeCompiler $ Pandoc.runIOorExplode $ makePDF "pdflatex" [] Pandoc.writeLaTeX Pandoc.def x
-
-            makeItem (itemBody (fmap (fromRight') y))
+            makeItem (itemBody (fmap (fromRight') i))
 
 
 compileLatex :: Rules ()
@@ -265,21 +242,6 @@ compileLatex = match content $ do
         item  <- getResourceBody
         return item
 
-
-latex :: Item String -> Compiler (Item TmpFile)
-latex item = do
-    TmpFile texPath <- newTmpFile "cv.tex"
-
-    let tmpDir  = takeDirectory texPath
-        pdfPath = texPath -<.> "pdf"
-
-    unsafeCompiler $ do
-            writeFile texPath $ itemBody item
-            _ <- Process.system $ unwords ["pdflatex", "--halt-on-error",
-                                    "-output-directory", tmpDir, texPath]
-            return ()
-
-    makeItem $ TmpFile pdfPath
 
 writeLaTex :: Item Pandoc.Pandoc -> Compiler (Item String)
 writeLaTex item = fmap (fmap (toString . fromText)) $ unsafeCompiler $ Pandoc.runIOorExplode $ mapM (Pandoc.writeLaTeX Pandoc.def) item
