@@ -167,6 +167,24 @@ generalStyle = do
         ":hover" & do
             backgroundColor "#f9f9f9"
 
+    ".title-main" ? do
+        FB.flex 1 1 auto
+
+    ".title-container" ? do
+        display flex
+        alignItems center
+
+    ".title-pdflink" ? do
+        padding (S.rem 1) (S.rem 3) (S.rem 1) (S.rem 3)
+        secondaryBoxShadow
+        alignItems center
+        backgroundColor "#ffffb5"
+        ":hover" & do
+            backgroundColor "#f9f9f9"
+
+    ".title-pdf" ? do
+        display flex
+
     body ? do
         color "#563D7C"
         fontFamily [] [monospace]

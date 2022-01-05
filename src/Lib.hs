@@ -10,14 +10,11 @@ module Lib
     , compileCV
     )
 where
-import Hakyll.Core.Compiler.Internal
 
-import Text.Pandoc.UTF8 (toStringLazy, fromString, fromText, toString, toText, toTextLazy)
-import qualified Data.Text                  as T
-import qualified Data.Text.Lazy                  as TL
-import Data.Text.Lazy.Encoding (decodeASCII, decodeLatin1, decodeUtf8)
+import Data.String
 
-import qualified Data.ByteString.Lazy as BL
+import qualified Text.Pandoc.UTF8 as PUTF8
+
 import Data.Either
 import qualified System.Process       as Process
 
@@ -192,20 +189,19 @@ contentContext = do
     return
         $  constField "menu" menu
         <> constField "css"  css
-        <> constField "pdf" (fromMaybe "lol" pdf)
+        <> constField "pdf" pdf
         <> defaultContext
 
 
-getPdf :: Compiler (Maybe String)
+getPdf :: Compiler String
 getPdf = do
     route <- getRoute =<< getUnderlying
     case route of
         Nothing -> noResult "No current route"
         Just r  -> do
-            return Nothing
-            --items <- loadAll $ fromVersion $ Just "css"
-            --let css = Css.fromTreeZipper $ TZ.fromList r $ fmap itemBody items
-            --return $ renderHtml $ Css.showCss css
+            --cheap solution. Use zipper
+            return $ renderHtml $ H.a ! A.class_ "title-pdflink" ! A.href (fromString ("/" </> r -<.> ".pdf")) $ "PDF"
+
 
 getCss :: Compiler String
 getCss = do
@@ -251,4 +247,4 @@ compileCV = match content $ version "pdf" $ do
 
 
 writeLaTex :: Item Pandoc.Pandoc -> Compiler (Item String)
-writeLaTex item = fmap (fmap (toString . fromText)) $ unsafeCompiler $ Pandoc.runIOorExplode $ mapM (Pandoc.writeLaTeX Pandoc.def) item
+writeLaTex item = fmap (fmap (PUTF8.toString . PUTF8.fromText)) $ unsafeCompiler $ Pandoc.runIOorExplode $ mapM (Pandoc.writeLaTeX Pandoc.def) item

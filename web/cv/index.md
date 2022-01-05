@@ -6,9 +6,9 @@ date: 2015-06-26
 
 # Magnus Møller
 
-[magnus108.github.io](https://magnus108.github.io/)
+- [magnus108.github.io](https://magnus108.github.io/)
 
-<magnus108@me.com>
+- <magnus108@me.com>
 
 ## Education
 
@@ -16,9 +16,9 @@ date: 2015-06-26
 
 ## Master's Thesis
 
-**Title**: A domain-specific language for defining and analysing pension contracts.
+- **Title**: A domain-specific language for defining and analysing pension contracts.\
 
-**Description**: This thesis presents a Haskell-embedded domain-specific language for defining and analysing various pension contracts of the danish pension system.
+- **Description**: This thesis presents a Haskell-embedded domain-specific language for defining and analysing various pension contracts of the danish pension system.
 The language presented is very similar to the language presented in [Composing contracts: an adventure in financial engineering](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/07/contracts-icfp.pdf).
 The language presented also incoperates [LiquidHaskell](https://ucsd-progsys.github.io/liquidhaskell-blog/) for formal descriptions of the danish pension system.
 
