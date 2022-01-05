@@ -12,8 +12,11 @@ module Lib
 where
 import Hakyll.Core.Compiler.Internal
 
-import Text.Pandoc.UTF8 (toStringLazy, fromText, toString, toText)
+import Text.Pandoc.UTF8 (toStringLazy, fromString, fromText, toString, toText, toTextLazy)
 import qualified Data.Text                  as T
+import qualified Data.Text.Lazy                  as TL
+import Data.Text.Lazy.Encoding (decodeASCII, decodeLatin1, decodeUtf8)
+
 import qualified Data.ByteString.Lazy as BL
 import Data.Either
 import qualified System.Process       as Process
@@ -49,7 +52,6 @@ import qualified Webbi.Utils.Free              as F
 import qualified Webbi.Menu                    as M
 import qualified Webbi.Css                     as Css
 
-import           Data.String
 import           Text.Blaze.Html5               ( (!) )
 import qualified Text.Blaze.Html5              as H
 import qualified Text.Blaze.Html5.Attributes   as A
@@ -91,7 +93,7 @@ compileSitemap :: Rules ()
 compileSitemap = create ["sitemap.xml"] $ do
     route idRoute
     compile $ do
-        pages <- recentFirst =<< loadAll content :: Compiler [Item String]
+        pages <- recentFirst =<< loadAll (content .&&. hasNoVersion) :: Compiler [Item String]
         singlePages <- loadAll (fromList ["index.html"])
         let allPages = pages <> singlePages
         let sitemapCtx = constField "root" root <>
@@ -186,12 +188,24 @@ contentContext :: Compiler (Context String)
 contentContext = do
     menu <- getMenu
     css  <- getCss
+    pdf <- getPdf
     return
         $  constField "menu" menu
         <> constField "css"  css
+        <> constField "pdf" (fromMaybe "lol" pdf)
         <> defaultContext
 
 
+getPdf :: Compiler (Maybe String)
+getPdf = do
+    route <- getRoute =<< getUnderlying
+    case route of
+        Nothing -> noResult "No current route"
+        Just r  -> do
+            return Nothing
+            --items <- loadAll $ fromVersion $ Just "css"
+            --let css = Css.fromTreeZipper $ TZ.fromList r $ fmap itemBody items
+            --return $ renderHtml $ Css.showCss css
 
 getCss :: Compiler String
 getCss = do
@@ -223,19 +237,17 @@ compileImages =
 
 
 compileCV :: Rules ()
-compileCV = do
-    create ["cv.pdf"] $ do
-        route idRoute
+compileCV = match content $ version "pdf" $ do
+        route $ setExtension "pdf"
         compile $ do
-            i <- loadSnapshot "cv/index.md" "pandoc"
+            r  <- getResourceFilePath
+            i <- loadSnapshot (setVersion Nothing (fromFilePath r)) "pandoc"
                 >>= readPandoc
                 >>= writeLaTex
                 >>= loadAndApplyTemplate "templates/cv.tex" defaultContext
                 >>= readPandoc
                 >>= mapM (unsafeCompiler . Pandoc.runIOorExplode . makePDF "pdflatex" [] Pandoc.writeLaTeX Pandoc.def)
-
             makeItem (itemBody (fmap (fromRight') i))
-
 
 
 writeLaTex :: Item Pandoc.Pandoc -> Compiler (Item String)
