@@ -49,9 +49,11 @@ library
     , clay
     , comonad
     , containers
+    , dhall
     , extra
     , filepath
     , hakyll
+    , mtl
     , pandoc
     , process
     , tasty
@@ -78,9 +80,11 @@ executable webbi-exe
     , clay
     , comonad
     , containers
+    , dhall
     , extra
     , filepath
     , hakyll
+    , mtl
     , pandoc
     , process
     , tasty
@@ -109,9 +113,11 @@ test-suite webbi-test
     , clay
     , comonad
     , containers
+    , dhall
     , extra
     , filepath
     , hakyll
+    , mtl
     , pandoc
     , process
     , tasty

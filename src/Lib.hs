@@ -7,12 +7,14 @@ module Lib
     , compileSitemap
     , compileAtom
     , compileImages
-    , compileCV
+    , compilePdf
+    , compileFrontPagePdf
     )
 where
 
 import Data.String
 
+import qualified Data.Text as T
 import qualified Text.Pandoc.UTF8 as PUTF8
 
 import Data.Either
@@ -31,6 +33,7 @@ import           Text.Blaze.Html.Renderer.String
 import           System.FilePath                ( splitPath
                                                 , dropFileName
                                                 , takeFileName
+                                                , replaceExtension
                                                 , takeBaseName
                                                 , replaceFileName
                                                 , takeDirectory
@@ -152,6 +155,7 @@ compileFrontPage = match "index.html" $ do
         compile $ do
             ctx <- contentContext
             getResourceBody
+                >>= saveSnapshot "pandoc"
                 >>= applyAsTemplate ctx
                 >>= loadAndApplyTemplate "templates/default.html" ctx
                 >>= relativizeUrls
@@ -232,19 +236,44 @@ compileImages =
       compile copyFileCompiler
 
 
-compileCV :: Rules ()
-compileCV = match content $ version "pdf" $ do
+compilePdf :: Rules ()
+compilePdf = match content $ version "pdf" $ do
         route $ setExtension "pdf"
         compile $ do
             r  <- getResourceFilePath
-            i <- loadSnapshot (setVersion Nothing (fromFilePath r)) "pandoc"
+            loadSnapshot (setVersion Nothing (fromFilePath r)) "pandoc"
                 >>= readPandoc
                 >>= writeLaTex
                 >>= loadAndApplyTemplate "templates/cv.tex" defaultContext
+                >>= latex
+
+
+compileFrontPagePdf :: Rules () -- fix this dublicate
+compileFrontPagePdf = match "index.html" $ version "pdf" $ do
+        route $ setExtension "pdf"
+        compile $ do
+            r  <- getResourceFilePath
+            loadSnapshot (setVersion Nothing (fromFilePath r)) "pandoc"
                 >>= readPandoc
-                >>= mapM (unsafeCompiler . Pandoc.runIOorExplode . makePDF "pdflatex" [] Pandoc.writeLaTeX Pandoc.def)
-            makeItem (itemBody (fmap (fromRight') i))
+                >>= writeLaTex
+                >>= loadAndApplyTemplate "templates/cv.tex" defaultContext
+                >>= latex
+
+
+latex :: Item String -> Compiler (Item TmpFile)
+latex item = do
+  TmpFile texPath <- newTmpFile "latex.tex"
+  let tmpDir  = takeDirectory texPath
+      pdfPath = replaceExtension texPath "pdf"
+
+  unsafeCompiler $ do
+    writeFile texPath $ itemBody item
+    _ <- Process.system $ unwords ["pdflatex", "--halt-on-error",
+                                   "-output-directory", tmpDir, texPath]
+    return ()
+
+  makeItem $ TmpFile pdfPath
 
 
 writeLaTex :: Item Pandoc.Pandoc -> Compiler (Item String)
-writeLaTex item = fmap (fmap (PUTF8.toString . PUTF8.fromText)) $ unsafeCompiler $ Pandoc.runIOorExplode $ mapM (Pandoc.writeLaTeX Pandoc.def) item
+writeLaTex item = fmap (fmap T.unpack) $ unsafeCompiler $ Pandoc.runIOorExplode $ mapM (Pandoc.writeLaTeX Pandoc.def) item

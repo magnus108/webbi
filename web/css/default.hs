@@ -1,9 +1,42 @@
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ViewPatterns #-}
 
-import           Clay
+import qualified Dhall as D
+import Data.String
+
+import GHC.Generics
+import           Clay hiding (grab, id)
+import Clay.Stylesheet (StyleM)
 import qualified Clay.Flexbox as FB
 import qualified Clay.Size as S
 import qualified Data.Text.Lazy.IO             as T
+import GHC.Records (HasField (getField))
+import GHC.TypeLits (Symbol)
+import Data.Kind
+
+import Control.Monad.Reader
 
 primaryBoxShadow :: Css
 primaryBoxShadow = boxShadowWithSpread nil (px 2) (px 5) nil (rgba 0 0 0 0.3)
@@ -11,12 +44,9 @@ primaryBoxShadow = boxShadowWithSpread nil (px 2) (px 5) nil (rgba 0 0 0 0.3)
 secondaryBoxShadow :: Css
 secondaryBoxShadow = boxShadow $ pure $ bsColor (rgba 0 0 0 0.3) (shadow (px 10) (px 11))
 
-darkPrimaryColor :: Color
-darkPrimaryColor = "#0097A7"
 
-
-primaryColor :: Color
-primaryColor = "#00BCD4"
+primaryColor_ :: Color
+primaryColor_ = "#00BCD4"
 
 
 lightPrimaryColor :: Color
@@ -109,10 +139,6 @@ generalStyle = do
         margin (S.rem 0) (S.rem 0) (S.rem 4) (S.rem 0)
 
 
-    ".header" ? do
-        primaryBoxShadow
-        backgroundColor darkPrimaryColor
-
     ".front" ? do
         backgroundColor "#f5f5dc"
 
@@ -198,5 +224,81 @@ styleAll = do
     styleMenu
 
 
+
+newtype DarkPrimaryColor = DarkPrimaryColor { unDarkPrimaryColor :: String }
+    deriving (Generic)
+    deriving newtype (D.FromDhall)
+
+data Env (m :: Type -> Type) = Env
+    { darkPrimaryColor :: DarkPrimaryColor
+    } deriving (Has DarkPrimaryColor) via Field "darkPrimaryColor" (Env m)
+
+
+
+
+usingReaderT :: r -> ReaderT r m a -> m a
+usingReaderT = flip runReaderT
+
+run :: env -> App env a -> StyleM a
+run env = usingReaderT env . unApp
+
+class Has field env where
+    obtain :: env -> field
+
+grab :: forall field env m . (MonadReader env m, Has field env) => m field
+grab = asks $ obtain @field
+{-# INLINE grab #-}
+
+newtype Field (s :: Symbol) env = Field
+    { unField :: env
+    }
+
+instance forall s f env . (HasField s env f) => Has f (Field s env) where
+    obtain :: Field s env -> f
+    obtain = getField @s . unField
+    {-# INLINE obtain #-}
+
+
+newtype App env a = App
+    { unApp :: ReaderT env StyleM a
+    } deriving newtype ( Functor
+                       , Applicative
+                       , Monad
+                       , MonadReader env
+                       , MonadStyle
+                       )
+
+class Monad m => MonadStyle m where
+    styleIt :: StyleM () -> m ()
+
+
+instance (MonadStyle m) => MonadStyle (ReaderT env m) where
+    styleIt = lift . styleIt
+
+
+instance MonadStyle StyleM where
+    styleIt = id
+
+
+createStyle :: (MonadStyle m, MonadReader env m, Has DarkPrimaryColor env) => m ()
+createStyle = do
+    styleIt $ styleAll
+    createHeader
+
+
+createHeader :: (MonadStyle m, MonadReader env m, Has DarkPrimaryColor env) => m ()
+createHeader = do
+    (DarkPrimaryColor darkPrimaryColor) <- grab @DarkPrimaryColor
+    styleIt $ ".header" ? do
+        primaryBoxShadow
+        backgroundColor (fromString darkPrimaryColor)
+
 main :: IO ()
-main = T.putStr $ renderWith compact [] $ styleAll
+main = do
+    --loadConfig
+    --mkEnv
+    --run
+    x <- (D.input D.auto "./css/config.dhall")
+    T.putStr $ renderWith compact [] $ do
+        let e = Env { darkPrimaryColor = DarkPrimaryColor x }
+        run e createStyle

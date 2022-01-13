@@ -32,10 +32,13 @@ dependencies:
 - text
 - bytestring
 - process
+- mtl
 
 - tasty
 - tasty-hunit
 - tasty-quickcheck
+
+- dhall
 
 
 default-extensions:

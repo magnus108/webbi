@@ -14,4 +14,5 @@ main = hakyll $ do
     compileSitemap
     compileAtom
     compileImages
-    compileCV
+    compilePdf
+    compileFrontPagePdf
