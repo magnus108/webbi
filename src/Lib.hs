@@ -60,6 +60,9 @@ import qualified Text.Blaze.Html5.Attributes   as A
 styles :: Pattern
 styles = "**css/*.hs"
 
+stylesConfig :: Pattern
+stylesConfig = "**css/*.dhall"
+
 images :: Pattern
 images = "**images/*.jpg"
 
@@ -115,14 +118,24 @@ compileTemplates = match "templates/*" $ compile templateBodyCompiler
 compileCss :: Rules ()
 compileCss = do
     compileClay
+    compileStylesConfig
     compileStyles
+
+
+compileStylesConfig :: Rules ()
+compileStylesConfig = do
+    match stylesConfig $ do
+        version "stylesConfig" $ compile $ getResourceBody
 
 
 compileClay :: Rules ()
 compileClay = do
     match styles $ do
         route $ setExtension "css"
-        compile $ getResourceString >>= withItemBody (unixFilter "runghc" [])
+        compile $ do
+            path <- getResourceFilePath
+            makePatternDependency (fromGlob $ (dropFileName path) </> "*")
+            getResourceString >>= withItemBody (unixFilter "runghc" [])
 
 
 compileStyles :: Rules ()

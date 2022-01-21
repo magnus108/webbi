@@ -40,6 +40,9 @@ dependencies:
 
 - dhall
 
+- lens
+- generic-lens
+
 
 default-extensions:
 - OverloadedStrings

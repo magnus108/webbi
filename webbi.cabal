@@ -52,7 +52,9 @@ library
     , dhall
     , extra
     , filepath
+    , generic-lens
     , hakyll
+    , lens
     , mtl
     , pandoc
     , process
@@ -83,7 +85,9 @@ executable webbi-exe
     , dhall
     , extra
     , filepath
+    , generic-lens
     , hakyll
+    , lens
     , mtl
     , pandoc
     , process
@@ -116,7 +120,9 @@ test-suite webbi-test
     , dhall
     , extra
     , filepath
+    , generic-lens
     , hakyll
+    , lens
     , mtl
     , pandoc
     , process

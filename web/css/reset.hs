@@ -13,6 +13,10 @@ styleMenu = do
     body ?  do
         lineHeight (unitless 1)
         margin nil nil nil nil
+    ul ? do
+        margin nil nil nil nil
+        padding nil nil nil nil
+        
 
 
 main :: IO ()
