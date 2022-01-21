@@ -96,6 +96,15 @@ newtype SecondaryAccentColor = SecondaryAccentColor { unSecondaryAccentColor :: 
 newtype DividerColor = DividerColor { unDividerColor :: Color }
       deriving (Generic)
 
+
+data MenuButtonStyle = MenuButtonStyle { a :: Size LengthUnit
+                               , b :: Size LengthUnit
+                               , c :: Size LengthUnit
+                               , d :: Size LengthUnit
+                               }
+      deriving (Generic)
+
+
 data MenuStyle = MenuStyle { maxWidth :: Size LengthUnit, fontWeight :: C.FontWeight }
       deriving (Generic)
 
@@ -128,6 +137,7 @@ data Env (m :: Type -> Type) = Env
     , secondaryAccentColor :: SecondaryAccentColor
     , dividerColor :: DividerColor
     , menuStyle :: MenuStyle
+    , menuButtonStyle :: MenuButtonStyle
     , titleStyle :: TitleStyle
     , footerStyle :: FooterStyle
     , primaryShadowStyle :: PrimaryShadowStyle
@@ -142,6 +152,7 @@ data Env (m :: Type -> Type) = Env
       deriving (Has SecondaryAccentColor) via Field "secondaryAccentColor" (Env m)
       deriving (Has DividerColor) via Field "dividerColor" (Env m)
       deriving (Has MenuStyle) via Field "menuStyle" (Env m)
+      deriving (Has MenuButtonStyle) via Field "menuButtonStyle" (Env m)
       deriving (Has TitleStyle) via Field "titleStyle" (Env m)
       deriving (Has FooterStyle) via Field "footerStyle" (Env m)
       deriving (Has PrimaryShadowStyle) via Field "primaryShadowStyle" (Env m)
@@ -167,6 +178,14 @@ data Config = Config
     } deriving (Generic)
       deriving (D.FromDhall)
 
+data ButtonConfig = ButtonConfig { a :: Double
+                                 , b :: Double
+                                 , c :: Double
+                                 , d :: Double
+                                 }
+      deriving (Generic)
+      deriving (D.FromDhall)
+
 data TitleConfig = TitleConfig {}
       deriving (Generic)
       deriving (D.FromDhall)
@@ -182,6 +201,7 @@ data ShadowConfig = ShadowConfig { color :: String, x :: Double, y :: Double, bl
 data MenuConfig = MenuConfig
     { maxWidth :: Double
     , fontWeight :: FontWeight
+    , buttonConfig :: ButtonConfig
     } deriving (Generic)
       deriving (D.FromDhall)
 
@@ -249,6 +269,7 @@ createStyle
        , WithColorPalette env m
        , WithShadowPalette env m
        , Has MenuStyle env
+       , Has MenuButtonStyle env
        , Has FooterStyle env
        )
     => m ()
@@ -283,10 +304,14 @@ createHeader = do
         toShadow primaryShadow
         backgroundColor darkPrimaryColor
 
+
+
+
 styleMenu
     :: ( MonadStyle m
        , MonadReader env m
        , Has MenuStyle env
+       , Has MenuButtonStyle env
        , WithColorPalette env m
        , WithShadowPalette env m
        )
@@ -295,6 +320,7 @@ styleMenu = do
     (AccentColor accentColor      ) <- grab @AccentColor
     (IconColor   iconColor        ) <- grab @IconColor
     (MenuStyle maxWidth fontWeight) <- grab @MenuStyle
+    (MenuButtonStyle a b c d) <- grab @MenuButtonStyle
     (SecondaryShadowStyle secondaryShadow) <- grab @SecondaryShadowStyle
     styleIt $ do
         ".menu" ? do
@@ -316,7 +342,7 @@ styleMenu = do
             C.fontWeight fontWeight
 
             FB.flex 1 1 auto     --
-            padding (S.rem 1) (S.rem 1) (S.rem 1) (S.rem 1)   --
+            padding a b c d
 
         ".menu-link-selection" ? do
             backgroundColor accentColor
@@ -324,7 +350,7 @@ styleMenu = do
             C.fontWeight fontWeight
 
             FB.flex 1 1 auto    --
-            padding (S.rem 1) (S.rem 1) (S.rem 1) (S.rem 1)   --
+            padding a b c d
 
 
 
@@ -401,8 +427,8 @@ main = do
                 , dividerColor = DividerColor (fromString (x ^. #dividerColor))
                 , menuStyle = MenuStyle
                                   (px (x ^. #menuConfig . #maxWidth))
-                                  (toFontWeight (x ^. #menuConfig . #fontWeight)
-                                  )
+                                  (toFontWeight (x ^. #menuConfig . #fontWeight))
+                , menuButtonStyle = MenuButtonStyle (S.rem (x ^. #menuConfig . #buttonConfig . #a)) (S.rem (x ^. #menuConfig . #buttonConfig . #b)) (S.rem (x ^. #menuConfig . #buttonConfig . #c)) (S.rem (x ^. #menuConfig . #buttonConfig . #d))
                 , primaryShadowStyle = PrimaryShadowStyle $ ShadowStyle (fromString (x ^. #primaryShadowConfig . #color)) (px (x ^. #primaryShadowConfig . #x)) (px (x ^. #primaryShadowConfig . #y)) (px (x ^. #primaryShadowConfig . #blur))
                 , secondaryShadowStyle = SecondaryShadowStyle $ ShadowStyle (fromString (x ^. #secondaryShadowConfig . #color)) (px (x ^. #secondaryShadowConfig . #x)) (px (x ^. #secondaryShadowConfig . #y)) (px (x ^. #secondaryShadowConfig . #blur))
                 , titleStyle = TitleStyle

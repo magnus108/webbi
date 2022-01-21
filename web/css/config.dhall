@@ -7,7 +7,7 @@
 , accentColor = "#FFEB3B"
 , dividerColor = "#BDBDBD"
 , secondaryAccentColor = "#FFFFB5"
-, menuConfig = { maxWidth = 1140.0,  fontWeight = FontWeight.Bold }
+, menuConfig = { maxWidth = 1140.0,  fontWeight = FontWeight.Bold, buttonConfig = { a = 1.0, b = 1.0, c = 1.0, d = 1.0}}
 , titleConfig = {=}
 , footerConfig = {=}
 , primaryShadowConfig = {color = "#0000004d", x = 0.0, y = 2.0, blur = 5.0}

@@ -16,7 +16,6 @@ styleMenu = do
     ul ? do
         margin nil nil nil nil
         padding nil nil nil nil
-        
 
 
 main :: IO ()
