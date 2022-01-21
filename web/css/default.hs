@@ -305,8 +305,6 @@ createHeader = do
         backgroundColor darkPrimaryColor
 
 
-
-
 styleMenu
     :: ( MonadStyle m
        , MonadReader env m
