@@ -12,18 +12,18 @@ module Lib
     )
 where
 
-import Data.String
+import           Data.String
 
-import qualified Data.Text as T
-import qualified Text.Pandoc.UTF8 as PUTF8
+import qualified Data.Text                     as T
+import qualified Text.Pandoc.UTF8              as PUTF8
 
-import Data.Either
-import qualified System.Process       as Process
+import           Data.Either
+import qualified System.Process                as Process
 
-import Text.Pandoc.PDF
-import qualified Text.Pandoc          as Pandoc
+import           Text.Pandoc.PDF
+import qualified Text.Pandoc                   as Pandoc
 
-import Control.Monad
+import           Control.Monad
 import           Debug.Trace
 import           Data.Maybe
 
@@ -42,15 +42,16 @@ import           System.FilePath                ( splitPath
                                                 )
 
 import           Hakyll
-import           Hakyll.Web.Pandoc (pandocCompilerWithTransform)
+import           Hakyll.Web.Pandoc              ( pandocCompilerWithTransform )
 
-import           Webbi.Menu                     ( Menu(..) )
+import Webbi.Menu2                    ( Menu(..))
 import qualified Webbi.Utils.RoseTree          as RT
 import qualified Webbi.Utils.TreeZipper        as TZ
+import qualified Webbi.Utils.TreeZipper2       as TZ2
 import qualified Webbi.Utils.Free              as F
 
-import qualified Webbi.Menu                    as M
-import qualified Webbi.Css                     as Css
+import qualified Webbi.Menu2                    as M
+import qualified Webbi.Css2                    as Css
 
 import           Text.Blaze.Html5               ( (!) )
 import qualified Text.Blaze.Html5              as H
@@ -74,21 +75,22 @@ root = "MISSING"
 
 
 feedConfiguration :: FeedConfiguration
-feedConfiguration =
-    FeedConfiguration
-        { feedTitle       = "Magnus Møller"
-        , feedDescription = "Something cool"
-        , feedAuthorName  = "Magnus Møller"
-        , feedAuthorEmail = "magnus108@me.com"
-        , feedRoot        = root
-        }
+feedConfiguration = FeedConfiguration { feedTitle       = "Magnus Møller"
+                                      , feedDescription = "Something cool"
+                                      , feedAuthorName  = "Magnus Møller"
+                                      , feedAuthorEmail = "magnus108@me.com"
+                                      , feedRoot        = root
+                                      }
+
 
 compileAtom :: Rules ()
 compileAtom = create ["atom.xml"] $ do
     route idRoute
     compile $ do
         let feedCtx = postCtx <> bodyField "description"
-        posts <- fmap (take 10) . recentFirst =<< loadAllSnapshots (content .&&. hasNoVersion) "content"
+        posts <- fmap (take 10) . recentFirst =<< loadAllSnapshots
+            (content .&&. hasNoVersion)
+            "content"
         renderAtom feedConfiguration feedCtx posts
 
 
@@ -96,19 +98,19 @@ compileSitemap :: Rules ()
 compileSitemap = create ["sitemap.xml"] $ do
     route idRoute
     compile $ do
-        pages <- recentFirst =<< loadAll (content .&&. hasNoVersion) :: Compiler [Item String]
+        pages <-
+            recentFirst =<< loadAll (content .&&. hasNoVersion) :: Compiler
+                [Item String]
         singlePages <- loadAll (fromList ["index.html"])
         let allPages = pages <> singlePages
-        let sitemapCtx = constField "root" root <>
-                         listField "pages" postCtx (return allPages)
+        let sitemapCtx = constField "root" root
+                <> listField "pages" postCtx (return allPages)
 
         makeItem "" >>= loadAndApplyTemplate "templates/sitemap.xml" sitemapCtx
 
 postCtx :: Context String
 postCtx =
-    constField "root" root <>
-    dateField "date" "%Y-%m-%d" <>
-    defaultContext
+    constField "root" root <> dateField "date" "%Y-%m-%d" <> defaultContext
 
 
 compileTemplates :: Rules ()
@@ -158,20 +160,20 @@ compileContent = do
 
 compileRobots :: Rules ()
 compileRobots = match "robots.txt" $ do
-    route   idRoute
+    route idRoute
     compile copyFileCompiler
 
 
 compileFrontPage :: Rules ()
 compileFrontPage = match "index.html" $ do
-        route idRoute
-        compile $ do
-            ctx <- contentContext
-            getResourceBody
-                >>= saveSnapshot "pandoc"
-                >>= applyAsTemplate ctx
-                >>= loadAndApplyTemplate "templates/default.html" ctx
-                >>= relativizeUrls
+    route idRoute
+    compile $ do
+        ctx <- contentContext
+        getResourceBody
+            >>= saveSnapshot "pandoc"
+            >>= applyAsTemplate ctx
+            >>= loadAndApplyTemplate "templates/default.html" ctx
+            >>= relativizeUrls
 
 
 compileMenu :: Rules ()
@@ -202,11 +204,11 @@ contentContext :: Compiler (Context String)
 contentContext = do
     menu <- getMenu
     css  <- getCss
-    pdf <- getPdf
+    pdf  <- getPdf
     return
         $  constField "menu" menu
         <> constField "css"  css
-        <> constField "pdf" pdf
+        <> constField "pdf"  pdf
         <> defaultContext
 
 
@@ -217,7 +219,12 @@ getPdf = do
         Nothing -> noResult "No current route"
         Just r  -> do
             --cheap solution. Use zipper
-            return $ renderHtml $ H.a ! A.class_ "title-pdflink" ! A.href (fromString ("/" </> r -<.> ".pdf")) $ "PDF"
+            return
+                $ renderHtml
+                $ H.a
+                ! A.class_ "title-pdflink"
+                ! A.href (fromString ("/" </> r -<.> ".pdf"))
+                $ "PDF"
 
 
 getCss :: Compiler String
@@ -227,7 +234,7 @@ getCss = do
         Nothing -> noResult "No current route"
         Just r  -> do
             items <- loadAll $ fromVersion $ Just "css"
-            let css = Css.fromTreeZipper $ TZ.fromList r $ fmap itemBody items
+            let css = Css.fromTreeZipper $ TZ2.fromList r $ fmap itemBody items
             return $ renderHtml $ Css.showCss css
 
 
@@ -238,55 +245,64 @@ getMenu = do
         Nothing -> noResult "No current route"
         Just r  -> do
             items <- loadAll $ fromVersion $ Just "menu"
-            let menu = M.fromTreeZipper $ TZ.fromList r $ fmap itemBody items
+            let menu = M.fromTreeZipper $ TZ2.fromList r $ fmap itemBody items
             return $ renderHtml $ M.showMenu menu
 
 
 compileImages :: Rules ()
-compileImages =
-    match images $ do
-      route $ customRoute $ \x -> "images" </> (takeFileName (toFilePath x))
-      compile copyFileCompiler
+compileImages = match images $ do
+    route $ customRoute $ \x -> "images" </> (takeFileName (toFilePath x))
+    compile copyFileCompiler
 
 
 compilePdf :: Rules ()
 compilePdf = match content $ version "pdf" $ do
-        route $ setExtension "pdf"
-        compile $ do
-            r  <- getResourceFilePath
-            loadSnapshot (setVersion Nothing (fromFilePath r)) "pandoc"
-                >>= readPandoc
-                >>= writeLaTex
-                >>= loadAndApplyTemplate "templates/cv.tex" defaultContext
-                >>= latex
+    route $ setExtension "pdf"
+    compile $ do
+        r <- getResourceFilePath
+        loadSnapshot (setVersion Nothing (fromFilePath r)) "pandoc"
+            >>= readPandoc
+            >>= writeLaTex
+            >>= loadAndApplyTemplate "templates/cv.tex" defaultContext
+            >>= latex
 
 
 compileFrontPagePdf :: Rules () -- fix this dublicate
 compileFrontPagePdf = match "index.html" $ version "pdf" $ do
-        route $ setExtension "pdf"
-        compile $ do
-            r  <- getResourceFilePath
-            loadSnapshot (setVersion Nothing (fromFilePath r)) "pandoc"
-                >>= readPandoc
-                >>= writeLaTex
-                >>= loadAndApplyTemplate "templates/cv.tex" defaultContext
-                >>= latex
+    route $ setExtension "pdf"
+    compile $ do
+        r <- getResourceFilePath
+        loadSnapshot (setVersion Nothing (fromFilePath r)) "pandoc"
+            >>= readPandoc
+            >>= writeLaTex
+            >>= loadAndApplyTemplate "templates/cv.tex" defaultContext
+            >>= latex
 
 
 latex :: Item String -> Compiler (Item TmpFile)
 latex item = do
-  TmpFile texPath <- newTmpFile "latex.tex"
-  let tmpDir  = takeDirectory texPath
-      pdfPath = replaceExtension texPath "pdf"
+    TmpFile texPath <- newTmpFile "latex.tex"
+    let tmpDir  = takeDirectory texPath
+        pdfPath = replaceExtension texPath "pdf"
 
-  unsafeCompiler $ do
-    writeFile texPath $ itemBody item
-    _ <- Process.system $ unwords ["pdflatex", "--halt-on-error",
-                                   "-output-directory", tmpDir, texPath]
-    return ()
+    unsafeCompiler $ do
+        writeFile texPath $ itemBody item
+        _ <-
+            Process.system
+                $ unwords
+                      [ "pdflatex"
+                      , "--halt-on-error"
+                      , "-output-directory"
+                      , tmpDir
+                      , texPath
+                      ]
+        return ()
 
-  makeItem $ TmpFile pdfPath
+    makeItem $ TmpFile pdfPath
 
 
 writeLaTex :: Item Pandoc.Pandoc -> Compiler (Item String)
-writeLaTex item = fmap (fmap T.unpack) $ unsafeCompiler $ Pandoc.runIOorExplode $ mapM (Pandoc.writeLaTeX Pandoc.def) item
+writeLaTex item =
+    fmap (fmap T.unpack) $ unsafeCompiler $ Pandoc.runIOorExplode $ mapM
+        (Pandoc.writeLaTeX Pandoc.def)
+        item

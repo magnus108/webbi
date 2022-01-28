@@ -13,11 +13,13 @@ import Webbi.Utils.TreeZipper
 
 import qualified Webbi.Utils.Trie as T
 
+import qualified Spec2
+
 main :: IO ()
 main = defaultMain tests
 
 tests :: TestTree
-tests = testGroup "Tests" [unitTests, quickChecks]
+tests = testGroup "Tests" [unitTests, {-quickChecks, -} Spec2.quickChecks2]
 
 
 hasCtxWithSiblings :: [Context a] -> Bool

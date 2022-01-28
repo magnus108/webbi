@@ -13,16 +13,20 @@ import Control.Monad
 
 import Debug.Trace
 
-instance (Eq a, Arbitrary a) => Arbitrary (RoseTree a) where
+    {-
+instance (Eq a, Ord a, Arbitrary a) => Arbitrary (RoseTree a) where
     arbitrary = sized gen
         where 
             gen 0 = RT.RoseTree <$> arbitrary <*> (return [])
             gen n = do
-                s' <- choose (1, 4)
-                RT.RoseTree <$> arbitrary <*> (fmap (nubBy (\x y -> (RT.datum x == (RT.datum y)))) (vectorOf s' (gen (n - (1 + (n `div` 3))))))
+                numberOfChildren <- choose (1, 4)
+                root <- arbitrary
+                children <- nubBy RT.eqDatum <$> vectorOf numberOfChildren (gen (n - (1 + (n `div` 3))))
+                return $ RT.RoseTree root children
 
+-}
 
-instance (Eq a, Arbitrary a) => Arbitrary (TreeZipper a) where
+instance (Eq a, Ord a, Arbitrary a) => Arbitrary (TreeZipper a) where
     arbitrary = sized gen
         where
             gen 0 = return $ Root []

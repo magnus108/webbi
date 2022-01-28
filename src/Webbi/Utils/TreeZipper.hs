@@ -26,6 +26,9 @@ import           System.FilePath                ( takeFileName
                                                 , joinPath
                                                 )
 
+import qualified Webbi.Utils.TreeZipper2
+import Webbi.Utils.Arbitrary.Instances2
+
 data Context a = Context [RoseTree a] a [RoseTree a]
     deriving (Show, Eq, Ord)
     deriving (Functor)
