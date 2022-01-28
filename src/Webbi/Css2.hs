@@ -21,7 +21,7 @@ import qualified Data.Map                      as M
 import           Text.Blaze.Html5               ( (!) )
 import qualified Text.Blaze.Html5              as H
 import qualified Text.Blaze.Html5.Attributes   as A
-
+import Data.Functor ((<&>))
 
 data Css = Css (TZ.TreeZipper FilePath)
     deriving (Show)
@@ -32,25 +32,22 @@ fromTreeZipper = Css
 
 
 showLink :: FilePath -> H.Html
-showLink path = H.link ! A.rel "stylesheet" ! A.href (fromString ("/" ++ path))
+showLink path = H.link ! A.rel "stylesheet" ! A.href (fromString path)
 
 
 showCss :: Css -> H.Html
-showCss (Css tz) = mapM_ showLink (TZ.path =<< (collect "css/" tz))
+showCss (Css tz) = mapM_ showLink paths
+    where paths = catMaybes (collect "css/" tz) >>= TZ.children >>= TZ.path <&> ("/" ++)
 
 
-collect :: FilePath -> TZ.TreeZipper FilePath -> [TZ.TreeZipper FilePath]
-collect path tz =
-    collectLeafs path tz
-        ++ (case TZ.up tz of
-               Nothing  -> collectRoot path tz
-               Just tz' -> collect path tz'
-           )
-
-collectRoot :: FilePath -> TZ.TreeZipper FilePath -> [TZ.TreeZipper FilePath]
-collectRoot path tz = TZ.children =<< maybeToList
-    (fmap TZ.fromRoseTree (RT.findRoseTree path (TZ.toForest tz)))
+collect :: FilePath -> TZ.TreeZipper FilePath -> [Maybe (TZ.TreeZipper FilePath)]
+collect path tz = collectLeafs path tz : case TZ.up tz of
+        Nothing  -> [collectRoot path tz]
+        Just tz' -> collect path tz'
 
 
-collectLeafs :: FilePath -> TZ.TreeZipper FilePath -> [TZ.TreeZipper FilePath]
-collectLeafs path tz = TZ.children =<< (maybeToList (TZ.down path tz))
+collectLeafs :: FilePath -> TZ.TreeZipper FilePath -> Maybe (TZ.TreeZipper FilePath)
+collectLeafs path tz = TZ.down path tz
+
+collectRoot :: FilePath -> TZ.TreeZipper FilePath -> Maybe (TZ.TreeZipper FilePath)
+collectRoot path tz = TZ.navigateTo [path] (TZ.toForest tz)
