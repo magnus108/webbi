@@ -7,8 +7,7 @@ import qualified Webbi.Utils.Free              as F
 import           Webbi.Utils.ListZipper
 import qualified Webbi.Utils.RoseTree          as RT
 import qualified Webbi.Utils.Trie              as T
-import           System.FilePath                ( splitPath
-                                                )
+import           System.FilePath                ( splitPath )
 import           Data.Maybe
 
 
@@ -40,19 +39,17 @@ toContexts (TreeZipper _ xs _ _) = xs
 
 fromList :: FilePath -> [FilePath] -> TreeZipper FilePath
 fromList path =
-    navigateTo' route
-        . RT.fromTrie
-        . T.fromList T.insert
-        . fmap splitPath
+    navigateTo' route . RT.fromTrie . T.fromList T.insert . fmap splitPath
     where route = splitPath path
 
 
 down :: Eq a => a -> TreeZipper a -> Maybe (TreeZipper a)
 down x (TreeZipper rt bs lss rss) =
     let (ls, rs) = break (\item -> RT.datum item == x) (RT.children rt)
-    in case rs of
-        y : ys -> Just (TreeZipper y (Context ls (RT.datum rt) ys : (bs)) lss rss)
-        _ -> Nothing
+    in  case rs of
+            y : ys ->
+                Just (TreeZipper y (Context ls (RT.datum rt) ys : (bs)) lss rss)
+            _ -> Nothing
 
 
 up :: TreeZipper a -> Maybe (TreeZipper a)
@@ -103,34 +100,33 @@ firstOf options v = case options of
 
 
 firstChild :: Eq a => TreeZipper a -> Maybe (TreeZipper a)
-firstChild tz              = firstChild' (toRoseTree tz)
+firstChild tz = firstChild' (toRoseTree tz)
   where
     firstChild' x = case RT.children x of
         []     -> Nothing
         c : cs -> down (RT.datum c) tz
 
 
-
 rights' :: TreeZipper a -> [RoseTree a]
-rights' (TreeZipper _ [] _ rs) = rs
-rights' (TreeZipper item ((Context ls x rs) : bs) _ _) = rs
+rights' (TreeZipper _    []                       _ rs) = rs
+rights' (TreeZipper item ((Context ls x rs) : bs) _ _ ) = rs
 
 
 lefts' :: TreeZipper a -> [RoseTree a]
-lefts' (TreeZipper _ [] ls _) = reverse ls
-lefts' (TreeZipper item ((Context ls x rs) : bs) _ _) = reverse ls
+lefts' (TreeZipper _    []                       ls _) = reverse ls
+lefts' (TreeZipper item ((Context ls x rs) : bs) _  _) = reverse ls
 
 
 nextSibling :: Eq a => TreeZipper a -> Maybe (TreeZipper a)
 nextSibling tz = case rights' tz of
     []          -> Nothing
-    next : rest -> down (RT.datum next) =<< up tz -- Uproot?
+    next : rest -> down (RT.datum next) =<< up tz
 
 
 previousSibling :: Eq a => TreeZipper a -> Maybe (TreeZipper a)
 previousSibling tz = case lefts' tz of
     []          -> Nothing
-    prev : rest -> down (RT.datum prev) =<< up tz --UpRoota?
+    prev : rest -> down (RT.datum prev) =<< up tz
 
 
 
@@ -148,6 +144,31 @@ nextSiblingOfAncestor tz = case up tz of
     Just p  -> case nextSibling p of
         Nothing -> nextSiblingOfAncestor p
         Just s  -> Just s
+
+
+navigateTo :: (Eq a) => [a] -> Forest a -> Maybe (TreeZipper a)
+navigateTo []           _  = Nothing
+navigateTo (r : routes) fs = find routes =<< (fromForest r fs)
+  where
+    find []       m = Just m
+    find (x : xs) m = case (down x m) of
+        Nothing -> Nothing
+        Just y  -> find xs y
+
+
+datum :: TreeZipper a -> a
+datum tz = RT.datum (toRoseTree tz)
+
+
+siblings :: Eq a => TreeZipper a -> ListZipper (TreeZipper a)
+siblings tz = ListZipper (lefts tz) tz (rights tz)
+
+
+toForest :: TreeZipper a -> Forest a
+toForest (TreeZipper x _ ls rs) = Forest (ls ++ x : rs)
+
+
+
 
 
 
@@ -168,52 +189,23 @@ navigateTo' (r : routes) fs = find routes (fromForest' r fs)
         Just y  -> find xs y
 
 
-navigateTo :: (Eq a) => [a] -> Forest a -> Maybe (TreeZipper a)
-navigateTo [] _ = Nothing
-navigateTo (r : routes) fs = find routes =<< (fromForest r fs)
-  where
-    find []       m = Just m
-    find (x : xs) m = case (down x m) of
-        Nothing -> Nothing
-        Just y  -> find xs y
-
-
-datum :: TreeZipper a -> a
-datum tz = RT.datum (toRoseTree tz)
-
-
-siblings :: Eq a => TreeZipper a -> ListZipper (TreeZipper a)
-siblings tz = ListZipper (lefts tz) tz (rights tz)
-
-
-toForest  :: TreeZipper a -> Forest a
-toForest (TreeZipper x _ ls rs) = Forest (ls ++ x : rs)
-
-
-
-hierachy :: (Eq a) => TreeZipper a -> [Either (ListZipper (TreeZipper a)) (ListZipper (RoseTree a))]
+hierachy
+    :: (Eq a)
+    => TreeZipper a
+    -> [Either (ListZipper (TreeZipper a)) (ListZipper (RoseTree a))]
 hierachy m = hierachy' m []
   where
     hierachy' x xs =
         let level = case siblings x of
                 (ListZipper [] x []) -> xs
                 ys                   -> (ys : xs)
+            toListZipper (TreeZipper x _ ls rs) = ListZipper ls x rs
         in  case up x of
-                Nothing     -> (Right (lol x)) : (fmap Left level)
+                Nothing     -> (Right (toListZipper x)) : (fmap Left level)
                 Just parent -> hierachy' parent level
 
 
-lol :: Eq a => TreeZipper a -> ListZipper (RoseTree a)
-lol tz = toListZipper tz
-    where
-        toListZipper (TreeZipper x _ ls rs) = ListZipper ls x rs
-    {-
-collectRoot :: FilePath -> TZ.TreeZipper FilePath -> [TZ.TreeZipper FilePath]
-collectRoot path tz = TZ.children =<< maybeToList
-    (fmap TZ.fromRoseTree (RT.findRoseTree path (TZ.toForest tz)))
-    -}
-
 path :: TreeZipper String -> [String]
 path tz = case up tz of
-        Nothing  -> [datum tz]
-        Just tz' -> F.myZip (++) (path tz') [datum tz]
+    Nothing  -> [datum tz]
+    Just tz' -> F.myZip (++) (path tz') [datum tz]

@@ -23,7 +23,6 @@ import qualified Text.Blaze.Html5              as H
 import qualified Text.Blaze.Html5.Attributes   as A
 
 
-
 data Css = Css (TZ.TreeZipper FilePath)
     deriving (Show)
 
@@ -47,7 +46,6 @@ collect path tz =
                Nothing  -> collectRoot path tz
                Just tz' -> collect path tz'
            )
-
 
 collectRoot :: FilePath -> TZ.TreeZipper FilePath -> [TZ.TreeZipper FilePath]
 collectRoot path tz = TZ.children =<< maybeToList
