@@ -10,6 +10,8 @@ import qualified Webbi.Utils.Trie              as T
 import           System.FilePath                ( splitPath )
 import           Data.Maybe
 
+import qualified Data.DList                    as D
+
 
 data Context a = Context [RoseTree a] a [RoseTree a]
     deriving (Show, Eq, Ord)
@@ -168,6 +170,13 @@ toForest :: TreeZipper a -> Forest a
 toForest (TreeZipper x _ ls rs) = Forest (ls ++ x : rs)
 
 
+path :: TreeZipper String -> [String]
+path tz = D.toList $ path' tz
+    where
+        path' tz' = case up tz' of
+            Nothing  -> D.singleton (datum tz')
+            Just tz'' -> D.snoc (path' tz'') (datum tz')
+
 
 
 
@@ -187,9 +196,3 @@ navigateTo' (r : routes) fs = find routes (fromForest' r fs)
     find (x : xs) m = case (down x m) of
         Nothing -> m
         Just y  -> find xs y
-
-
-path :: TreeZipper String -> [String]
-path tz = case up tz of
-    Nothing  -> [datum tz]
-    Just tz' -> F.myZip (++) (path tz') [datum tz]

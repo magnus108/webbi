@@ -37,8 +37,8 @@ showLink path = H.link ! A.rel "stylesheet" ! A.href (fromString path)
 
 
 showCss :: Css -> H.Html
-showCss (Css tz) = mapM_ showLink paths
-    where paths = catMaybes (collect "css/" tz) >>= TZ.children >>= TZ.path <&> ("/" ++)
+showCss (Css tz) = mapM_ showLink $ fmap (("/" ++) . mconcat) paths
+    where paths = catMaybes (collect "css/" tz) >>= TZ.children <&> TZ.path
 
 
 collect :: FilePath -> TZ.TreeZipper FilePath -> [Maybe (TZ.TreeZipper FilePath)]

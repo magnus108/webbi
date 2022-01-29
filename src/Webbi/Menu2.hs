@@ -6,6 +6,7 @@ module Webbi.Menu2
     )
 where
 
+import           Data.Functor                   ( (<&>) )
 import           Data.Char
 import           Data.String
 import           System.FilePath                ( takeFileName
@@ -73,28 +74,30 @@ makeRoot (TZ.TreeZipper x _ ls rs) = fmap TZ.fromRoseTree $ ListZipper ls x rs
 
 
 showItems :: ListZipper (TZ.TreeZipper String) -> H.Html
-showItems (ListZipper ls x rs) = H.ul ! A.class_ (style <> "-level") $ level
+showItems (ListZipper ls x rs) = H.ul ! A.class_ (style <> "-level") $ foldMap
+    showItem
+    items
   where
     itemStyle = style <> "-link"
-    lss       = fmap (itemStyle, ) ls
-    rss       = fmap (itemStyle, ) rs
-    xx        = (itemStyle <> "-selection", x)
-    items = filter (\x -> TZ.datum (snd x) /= "index.html") $ lss ++ (xx : rss)
-    level     = foldMap showItem items
+    ls'       = fmap (itemStyle, ) ls
+    rs'       = fmap (itemStyle, ) rs
+    x'        = (itemStyle <> "-selection", x)
+    items = filter (\x -> TZ.datum (snd x) /= "index.html") $ ls' ++ (x' : rs')
 
 
 showItem :: (H.AttributeValue, TZ.TreeZipper String) -> H.Html
 showItem (itemStyle, tz) = item
   where
-    link = F.link ("/" ++ (foldl (++) "" (TZ.path tz)))
-    text =
-        fmap toUpper $ dropTrailingPathSeparator $ RT.datum $ TZ.toRoseTree tz
+    link = (++) "/" $ mconcat $ TZ.path tz
+    text = showText tz
     item =
         H.li
             ! A.class_ (style <> "-item")
             $ H.a
             ! A.class_ itemStyle
             ! A.href (fromString link)
-            $ (H.toHtml text)
+            $ H.toHtml text
 
 
+showText :: TZ.TreeZipper String -> String
+showText = fmap toUpper . dropTrailingPathSeparator . TZ.datum
