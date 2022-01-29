@@ -54,6 +54,7 @@ library
     , comonad
     , containers
     , dhall
+    , dlist
     , extra
     , filepath
     , generic-lens
@@ -87,6 +88,7 @@ executable webbi-exe
     , comonad
     , containers
     , dhall
+    , dlist
     , extra
     , filepath
     , generic-lens
@@ -123,6 +125,7 @@ test-suite webbi-test
     , comonad
     , containers
     , dhall
+    , dlist
     , extra
     , filepath
     , generic-lens

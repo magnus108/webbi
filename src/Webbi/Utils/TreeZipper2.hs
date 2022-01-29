@@ -189,22 +189,6 @@ navigateTo' (r : routes) fs = find routes (fromForest' r fs)
         Just y  -> find xs y
 
 
-hierachy
-    :: (Eq a)
-    => TreeZipper a
-    -> [Either (ListZipper (TreeZipper a)) (ListZipper (RoseTree a))]
-hierachy m = hierachy' m []
-  where
-    hierachy' x xs =
-        let level = case siblings x of
-                (ListZipper [] x []) -> xs
-                ys                   -> (ys : xs)
-            toListZipper (TreeZipper x _ ls rs) = ListZipper ls x rs
-        in  case up x of
-                Nothing     -> (Right (toListZipper x)) : (fmap Left level)
-                Just parent -> hierachy' parent level
-
-
 path :: TreeZipper String -> [String]
 path tz = case up tz of
     Nothing  -> [datum tz]

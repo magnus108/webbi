@@ -43,6 +43,8 @@ dependencies:
 - lens
 - generic-lens
 
+- dlist
+
 
 default-extensions:
 - OverloadedStrings

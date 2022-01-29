@@ -1,7 +1,9 @@
 ## To Do
 
-- clean "2"
 - fix menu2
+- clean "2"
+- clean lib
+- clean FREE
 
 ## Doing
 

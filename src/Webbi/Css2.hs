@@ -23,6 +23,7 @@ import qualified Text.Blaze.Html5              as H
 import qualified Text.Blaze.Html5.Attributes   as A
 import Data.Functor ((<&>))
 
+
 data Css = Css (TZ.TreeZipper FilePath)
     deriving (Show)
 
@@ -48,6 +49,7 @@ collect path tz = collectLeafs path tz : case TZ.up tz of
 
 collectLeafs :: FilePath -> TZ.TreeZipper FilePath -> Maybe (TZ.TreeZipper FilePath)
 collectLeafs path tz = TZ.down path tz
+
 
 collectRoot :: FilePath -> TZ.TreeZipper FilePath -> Maybe (TZ.TreeZipper FilePath)
 collectRoot path tz = TZ.navigateTo [path] (TZ.toForest tz)
