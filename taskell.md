@@ -6,6 +6,7 @@
 - clean imports
 - introduc reader in css/menu
 - overvej hvorda "Path" virker
+- Flyt grab og det der
 
 ## Doing
 

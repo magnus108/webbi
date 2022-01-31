@@ -1,3 +1,29 @@
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE                     ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module Webbi.Css2
     ( Css(..)
     , fromTreeZipper
@@ -22,15 +48,58 @@ import           Text.Blaze.Html5               ( (!) )
 import qualified Text.Blaze.Html5              as H
 import qualified Text.Blaze.Html5.Attributes   as A
 import Data.Functor ((<&>))
+import           Control.Monad.Reader
+import Text.Blaze.Internal
+
+import           Data.Kind
+import Webbi.Utils.Has
+
+
+newtype App env a = App
+    { unApp :: ReaderT env MarkupM a
+    } deriving newtype ( Functor
+                       , Applicative
+                       , Monad
+                       , MonadReader env
+                       , MonadCss
+                       )
+
+class Monad m => MonadCss m where
+    cssIt :: MarkupM () -> m ()
+
+
+instance (MonadCss m) => MonadCss (ReaderT env m) where
+    cssIt = lift . cssIt
+
+
+instance MonadCss MarkupM where
+    cssIt = id
+
+
+usingReaderT :: r -> ReaderT r m a -> m a
+usingReaderT = flip runReaderT
+
+
+run :: env -> App env a -> MarkupM a
+run env = usingReaderT env . unApp
+
+data Env = Env
+    { css :: Css
+    } deriving (Has Css) via Field "css" Env
 
 
 data Css = Css (TZ.TreeZipper FilePath)
     deriving (Show)
 
 
-fromTreeZipper :: TZ.TreeZipper FilePath -> Css
-fromTreeZipper = Css
+fromTreeZipper :: TZ.TreeZipper FilePath -> H.Html
+fromTreeZipper z = run (Env (Css z)) createCss
 
+
+createCss :: ( MonadReader env m, MonadCss m, Has Css env ) => m ()
+createCss = do
+    css <- grab @Css
+    cssIt $ showCss css
 
 showLink :: FilePath -> H.Html
 showLink path = H.link ! A.rel "stylesheet" ! A.href (fromString path)

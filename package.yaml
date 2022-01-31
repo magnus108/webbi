@@ -24,6 +24,7 @@ dependencies:
 - hakyll
 - clay
 - blaze-html
+- blaze-markup
 - comonad
 - containers
 - filepath

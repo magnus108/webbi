@@ -235,7 +235,7 @@ getCss = do
         Just r  -> do
             items <- loadAll $ fromVersion $ Just "css"
             let css = Css.fromTreeZipper $ TZ2.fromList r $ fmap itemBody items
-            return $ renderHtml $ Css.showCss css
+            return $ renderHtml css
 
 
 getMenu :: Compiler String

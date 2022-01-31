@@ -33,6 +33,7 @@ library
       Webbi.Utils.Arbitrary.Instances
       Webbi.Utils.Arbitrary.Instances2
       Webbi.Utils.Free
+      Webbi.Utils.Has
       Webbi.Utils.ListZipper
       Webbi.Utils.RoseTree
       Webbi.Utils.TreeZipper
@@ -49,6 +50,7 @@ library
   build-depends:
       base >=4.7 && <5
     , blaze-html
+    , blaze-markup
     , bytestring
     , clay
     , comonad
@@ -83,6 +85,7 @@ executable webbi-exe
   build-depends:
       base >=4.7 && <5
     , blaze-html
+    , blaze-markup
     , bytestring
     , clay
     , comonad
@@ -120,6 +123,7 @@ test-suite webbi-test
   build-depends:
       base >=4.7 && <5
     , blaze-html
+    , blaze-markup
     , bytestring
     , clay
     , comonad
