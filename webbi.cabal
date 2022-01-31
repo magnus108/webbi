@@ -27,17 +27,13 @@ library
   exposed-modules:
       Lib
       Webbi.Css
-      Webbi.Css2
       Webbi.Menu
-      Webbi.Menu2
       Webbi.Utils.Arbitrary.Instances
-      Webbi.Utils.Arbitrary.Instances2
       Webbi.Utils.Free
       Webbi.Utils.Has
       Webbi.Utils.ListZipper
       Webbi.Utils.RoseTree
       Webbi.Utils.TreeZipper
-      Webbi.Utils.TreeZipper2
       Webbi.Utils.Trie
   other-modules:
       Paths_webbi
@@ -111,7 +107,6 @@ test-suite webbi-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      Spec2
       Paths_webbi
   hs-source-dirs:
       test

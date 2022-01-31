@@ -44,14 +44,13 @@ import           System.FilePath                ( splitPath
 import           Hakyll
 import           Hakyll.Web.Pandoc              ( pandocCompilerWithTransform )
 
-import Webbi.Menu2                    ( Menu(..))
+import Webbi.Menu                    ( Menu(..))
 import qualified Webbi.Utils.RoseTree          as RT
 import qualified Webbi.Utils.TreeZipper        as TZ
-import qualified Webbi.Utils.TreeZipper2       as TZ2
 import qualified Webbi.Utils.Free              as F
 
-import qualified Webbi.Menu2                    as M
-import qualified Webbi.Css2                    as Css
+import qualified Webbi.Menu                    as M
+import qualified Webbi.Css                    as Css
 
 import           Text.Blaze.Html5               ( (!) )
 import qualified Text.Blaze.Html5              as H
@@ -234,7 +233,7 @@ getCss = do
         Nothing -> noResult "No current route"
         Just r  -> do
             items <- loadAll $ fromVersion $ Just "css"
-            let css = Css.fromTreeZipper $ TZ2.fromList r $ fmap itemBody items
+            let css = Css.fromTreeZipper $ TZ.fromList r $ fmap itemBody items
             return $ renderHtml css
 
 
@@ -245,7 +244,7 @@ getMenu = do
         Nothing -> noResult "No current route"
         Just r  -> do
             items <- loadAll $ fromVersion $ Just "menu"
-            let menu = M.fromTreeZipper $ TZ2.fromList r $ fmap itemBody items
+            let menu = M.fromTreeZipper $ TZ.fromList r $ fmap itemBody items
             return $ renderHtml $ M.showMenu menu
 
 

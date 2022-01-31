@@ -13,15 +13,27 @@ import Webbi.Utils.TreeZipper
 
 import qualified Webbi.Utils.Trie as T
 
-import qualified Spec2
 
 main :: IO ()
 main = defaultMain tests
 
 tests :: TestTree
-tests = testGroup "Tests" [unitTests, {-quickChecks, -} Spec2.quickChecks2]
+tests = testGroup "Tests" [unitTests, quickChecks]
+
+quickChecks :: TestTree
+quickChecks = testGroup "(checked by QuickCheck)"
+  [ QC.testProperty "(up . down) is id"
+        $ \(tz :: TreeZipper Int) ->
+            (isJust (firstChild tz)) ==>
+                    ((up =<< (firstChild tz)) === (Just tz))
+  , QC.testProperty "siblings are (children . up)" $
+        \(tz :: TreeZipper Int) ->
+            (isJust (up tz)) ==>
+                    (Just (lefts tz ++ (tz : (rights tz)))) === (children <$> up tz)
+  ]
 
 
+    {-
 hasCtxWithSiblings :: [Context a] -> Bool
 hasCtxWithSiblings [] = False
 hasCtxWithSiblings ((Context [] x []):xss) = False
@@ -49,7 +61,8 @@ isRoot :: TreeZipper a -> Bool
 isRoot (Root _) = True
 isRoot _ = False
 
-
+-}
+    {-
 summarize :: TreeZipper Int -> String
 summarize (Root []              ) = "empty root"
 summarize (Root _               ) = "root"
@@ -90,6 +103,7 @@ quickChecks = testGroup "(checked by QuickCheck)"
                 cover 1 ((not (hasCtxWithSiblings (toContexts tz))) && (not (hasRoots tz)) && (isLeaf tz)) "tree, is leaf, no roots, has ctx with no siblings" $
                     (Just (lefts tz ++ (tz : (rights tz)))) === (children <$> up tz)
   ]
+-}
 
 unitTests :: TestTree
 unitTests = testGroup "Unit tests" []
