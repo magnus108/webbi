@@ -27,7 +27,6 @@
 module Webbi.Css
     ( Css(..)
     , fromTreeZipper
-    , showCss
     )
 where
 
@@ -83,9 +82,14 @@ usingReaderT = flip runReaderT
 run :: env -> App env a -> MarkupM a
 run env = usingReaderT env . unApp
 
+
+newtype CssPath = CssPath { unCssPath :: FilePath }
+
 data Env = Env
     { css :: Css
+    , cssPath :: CssPath
     } deriving (Has Css) via Field "css" Env
+      deriving (Has CssPath) via Field "cssPath" Env
 
 
 data Css = Css (TZ.TreeZipper FilePath)
@@ -93,21 +97,19 @@ data Css = Css (TZ.TreeZipper FilePath)
 
 
 fromTreeZipper :: TZ.TreeZipper FilePath -> H.Html
-fromTreeZipper z = run (Env (Css z)) createCss
+fromTreeZipper z = run (Env (Css z) (CssPath "css/")) createCss
 
 
-createCss :: ( MonadReader env m, MonadCss m, Has Css env ) => m ()
+createCss :: ( MonadReader env m, MonadCss m, Has Css env, Has CssPath env) => m ()
 createCss = do
-    css <- grab @Css
-    cssIt $ showCss css
+    (Css tz) <- grab @Css
+    (CssPath path) <- grab @CssPath
+    let paths = catMaybes (collect path tz) >>= TZ.children <&> (("/" ++) . mconcat . TZ.path)
+    cssIt $ mapM_ showLink paths
+
 
 showLink :: FilePath -> H.Html
 showLink path = H.link ! A.rel "stylesheet" ! A.href (fromString path)
-
-
-showCss :: Css -> H.Html
-showCss (Css tz) = mapM_ showLink $ fmap (("/" ++) . mconcat) paths
-    where paths = catMaybes (collect "css/" tz) >>= TZ.children <&> TZ.path
 
 
 collect :: FilePath -> TZ.TreeZipper FilePath -> [Maybe (TZ.TreeZipper FilePath)]

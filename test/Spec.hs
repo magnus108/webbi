@@ -17,7 +17,7 @@ import SpecCheck
 
 main :: IO ()
 main = do
-    specCheck
+--    specCheck
     defaultMain tests
 
 tests :: TestTree
