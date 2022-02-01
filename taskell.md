@@ -6,6 +6,7 @@
 - overvej hvorda "Path" virker
 - quickspec
 - opsæt quiccheck
+- flyt MonadCss og omnavngiv
 
 ## Doing
 

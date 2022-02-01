@@ -245,7 +245,7 @@ getMenu = do
         Just r  -> do
             items <- loadAll $ fromVersion $ Just "menu"
             let menu = M.fromTreeZipper $ TZ.fromList r $ fmap itemBody items
-            return $ renderHtml $ M.showMenu menu
+            return $ renderHtml menu
 
 
 compileImages :: Rules ()
