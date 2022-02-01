@@ -13,9 +13,12 @@ import Webbi.Utils.TreeZipper
 
 import qualified Webbi.Utils.Trie as T
 
+import SpecCheck
 
 main :: IO ()
-main = defaultMain tests
+main = do
+    specCheck
+    defaultMain tests
 
 tests :: TestTree
 tests = testGroup "Tests" [unitTests, quickChecks]

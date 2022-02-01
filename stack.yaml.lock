@@ -3,10 +3,24 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
+packages:
+- completed:
+    hackage: quickspec-2.1.5@sha256:1d1cc020fa9075cb5fafd4056fe1d930d5763b954fa8200e57ce6aba057544b2,3557
+    pantry-tree:
+      sha256: 36e7cd88a0fe800a0b0ea216c0c3ea96db02e25fd34ef53653f6d5008730476c
+      size: 3032
+  original:
+    hackage: quickspec-2.1.5@sha256:1d1cc020fa9075cb5fafd4056fe1d930d5763b954fa8200e57ce6aba057544b2,3557
+- completed:
+    hackage: twee-lib-2.2@sha256:9fe9327505d8f450a94f2fc9eea74b292901b7992d520aa1dd4f0410fbe0e594,2112
+    pantry-tree:
+      sha256: 0356be78a4720251536932d2253f75eb1f97b26c61260e566b5e8e05642d5349
+      size: 1487
+  original:
+    hackage: twee-lib-2.2@sha256:9fe9327505d8f450a94f2fc9eea74b292901b7992d520aa1dd4f0410fbe0e594,2112
 snapshots:
-- original: lts-16.31
-  completed:
+- completed:
     sha256: 637fb77049b25560622a224845b7acfe81a09fdb6a96a3c75997a10b651667f6
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/16/31.yaml
     size: 534126
-packages: []
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/16/31.yaml
+  original: lts-16.31

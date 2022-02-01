@@ -42,6 +42,22 @@
 ]]></summary>
 </entry>
 <entry>
+    <title>QuickSpec Guide</title>
+    <link href="MISSING/posts/tests/quickspec/index.html" />
+    <id>MISSING/posts/tests/quickspec/index.html</id>
+    <published>2015-06-26T00:00:00Z</published>
+    <updated>2015-06-26T00:00:00Z</updated>
+    <summary type="html"><![CDATA[<article>
+    <section class="header">
+        
+    </section>
+    <section>
+        <p>QuickSpec Very cool</p>
+    </section>
+</article>
+]]></summary>
+</entry>
+<entry>
     <title>QuickCheck Guide</title>
     <link href="MISSING/posts/tests/quickcheck/index.html" />
     <id>MISSING/posts/tests/quickcheck/index.html</id>

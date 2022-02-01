@@ -46,6 +46,9 @@ dependencies:
 
 - dlist
 
+- quickspec
+- QuickCheck
+
 
 default-extensions:
 - OverloadedStrings

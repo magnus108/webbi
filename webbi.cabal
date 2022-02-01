@@ -44,7 +44,8 @@ library
       DerivingStrategies
       DeriveFunctor
   build-depends:
-      base >=4.7 && <5
+      QuickCheck
+    , base >=4.7 && <5
     , blaze-html
     , blaze-markup
     , bytestring
@@ -61,6 +62,7 @@ library
     , mtl
     , pandoc
     , process
+    , quickspec
     , tasty
     , tasty-hunit
     , tasty-quickcheck
@@ -79,7 +81,8 @@ executable webbi-exe
       DeriveFunctor
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      QuickCheck
+    , base >=4.7 && <5
     , blaze-html
     , blaze-markup
     , bytestring
@@ -96,6 +99,7 @@ executable webbi-exe
     , mtl
     , pandoc
     , process
+    , quickspec
     , tasty
     , tasty-hunit
     , tasty-quickcheck
@@ -107,6 +111,7 @@ test-suite webbi-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      SpecCheck
       Paths_webbi
   hs-source-dirs:
       test
@@ -116,7 +121,8 @@ test-suite webbi-test
       DeriveFunctor
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      QuickCheck
+    , base >=4.7 && <5
     , blaze-html
     , blaze-markup
     , bytestring
@@ -133,6 +139,7 @@ test-suite webbi-test
     , mtl
     , pandoc
     , process
+    , quickspec
     , tasty
     , tasty-hunit
     , tasty-quickcheck
