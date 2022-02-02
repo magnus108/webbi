@@ -10,7 +10,7 @@ import Data.List
 data Forest a = Forest [RoseTree a]
     deriving (Eq, Ord, Show)
     deriving (Functor)
-    
+
 
 findRoseTree :: Eq a => a -> Forest a -> Maybe (RoseTree a)
 findRoseTree a (Forest xs) = find (\x -> a == (datum x)) xs

@@ -28,6 +28,7 @@ library
       Lib
       Webbi.Css
       Webbi.Menu
+      Webbi.Utils.App
       Webbi.Utils.Arbitrary.Instances
       Webbi.Utils.Free
       Webbi.Utils.Has

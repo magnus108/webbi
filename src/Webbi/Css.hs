@@ -36,7 +36,7 @@ import           System.FilePath                ( splitPath )
 import           Data.Maybe
 import qualified Text.Blaze.Html5              as H
 
-import qualified Webbi.Utils.TreeZipper       as TZ
+import qualified Webbi.Utils.TreeZipper        as TZ
 import qualified Webbi.Utils.RoseTree          as RT
 import qualified Webbi.Utils.Trie              as T
 
@@ -46,44 +46,19 @@ import qualified Data.Map                      as M
 import           Text.Blaze.Html5               ( (!) )
 import qualified Text.Blaze.Html5              as H
 import qualified Text.Blaze.Html5.Attributes   as A
-import Data.Functor ((<&>))
+import           Data.Functor                   ( (<&>) )
 import           Control.Monad.Reader
-import Text.Blaze.Internal
+import           Text.Blaze.Internal
 
 import           Data.Kind
-import Webbi.Utils.Has
+import           Webbi.Utils.Has
 
 
-newtype App env a = App
-    { unApp :: ReaderT env MarkupM a
-    } deriving newtype ( Functor
-                       , Applicative
-                       , Monad
-                       , MonadReader env
-                       , MonadCss
-                       )
-
-class Monad m => MonadCss m where
-    cssIt :: MarkupM () -> m ()
-
-
-instance (MonadCss m) => MonadCss (ReaderT env m) where
-    cssIt = lift . cssIt
-
-
-instance MonadCss MarkupM where
-    cssIt = id
-
-
-usingReaderT :: r -> ReaderT r m a -> m a
-usingReaderT = flip runReaderT
-
-
-run :: env -> App env a -> MarkupM a
-run env = usingReaderT env . unApp
+import           Webbi.Utils.App
 
 
 newtype CssPath = CssPath { unCssPath :: FilePath }
+
 
 data Env = Env
     { css :: Css
@@ -100,27 +75,33 @@ fromTreeZipper :: TZ.TreeZipper FilePath -> H.Html
 fromTreeZipper z = run (Env (Css z) (CssPath "css/")) createCss
 
 
-createCss :: ( MonadReader env m, MonadCss m, Has Css env, Has CssPath env) => m ()
+createCss :: (MonadReader env m, Has Css env, Has CssPath env) => m H.Html
 createCss = do
-    (Css tz) <- grab @Css
+    (Css     tz  ) <- grab @Css
     (CssPath path) <- grab @CssPath
-    let paths = catMaybes (collect path tz) >>= TZ.children <&> (("/" ++) . mconcat . TZ.path)
-    cssIt $ mapM_ showLink paths
+    let paths =
+            catMaybes (collect path tz)
+                >>= TZ.children
+                <&> (("/" ++) . mconcat . TZ.path)
+    return $ mapM_ showLink paths
 
 
 showLink :: FilePath -> H.Html
 showLink path = H.link ! A.rel "stylesheet" ! A.href (fromString path)
 
 
-collect :: FilePath -> TZ.TreeZipper FilePath -> [Maybe (TZ.TreeZipper FilePath)]
+collect
+    :: FilePath -> TZ.TreeZipper FilePath -> [Maybe (TZ.TreeZipper FilePath)]
 collect path tz = collectLeafs path tz : case TZ.up tz of
-        Nothing  -> [collectRoot path tz]
-        Just tz' -> collect path tz'
+    Nothing  -> [collectRoot path tz]
+    Just tz' -> collect path tz'
 
 
-collectLeafs :: FilePath -> TZ.TreeZipper FilePath -> Maybe (TZ.TreeZipper FilePath)
+collectLeafs
+    :: FilePath -> TZ.TreeZipper FilePath -> Maybe (TZ.TreeZipper FilePath)
 collectLeafs path tz = TZ.down path tz
 
 
-collectRoot :: FilePath -> TZ.TreeZipper FilePath -> Maybe (TZ.TreeZipper FilePath)
+collectRoot
+    :: FilePath -> TZ.TreeZipper FilePath -> Maybe (TZ.TreeZipper FilePath)
 collectRoot path tz = TZ.navigateTo [path] (TZ.toForest tz)
