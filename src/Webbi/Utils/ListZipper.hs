@@ -31,6 +31,15 @@ instance Traversable ListZipper where
 mapC :: (a -> b) -> (a -> b) -> ListZipper a -> ListZipper b
 mapC f g (ListZipper ls x rs) = ListZipper (fmap f ls) (g x) (fmap f rs)
 
+
+mapCM :: Monad m => (a -> m b) -> (a -> m b) -> ListZipper a -> m (ListZipper b)
+mapCM f g (ListZipper ls x rs) = do
+    ls' <- mapM f ls
+    x'  <- g x
+    rs' <- mapM f rs
+    return (ListZipper ls' x' rs')
+
+
 toList :: ListZipper a -> [a]
 toList (ListZipper ls x rs) = ls ++ (x : rs)
 

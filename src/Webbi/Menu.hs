@@ -1,5 +1,6 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE DataKinds #-}
@@ -31,6 +32,9 @@ module Webbi.Menu
     )
 where
 
+
+import           Data.Bifunctor
+import           Data.Bifoldable
 import           Data.Function                  ( (&) )
 import           Control.Comonad
 import           Data.Functor                   ( (<&>) )
@@ -69,6 +73,15 @@ import           Text.Blaze.Internal
 
 import           Data.Kind
 import           Webbi.Utils.Has
+
+
+import           Control.Applicative
+
+
+instance Traversable D.DList where
+  traverse f = foldr cons_f (pure D.empty)
+    where
+      cons_f x = liftA2 D.cons (f x)
 
 
 data Env = Env
@@ -126,19 +139,39 @@ createMenu
 createMenu = do
     (Menu  tz   ) <- grab @Menu
     (Style style) <- grab @Style
-    items         <- F.foldMapM showItems $ collect tz
+    items <- F.bifoldMapM showIndex showItems $ collect tz
     return $ showHeader $ H.nav ! A.class_ style $ items
 
 
 collect
-    :: TZ.TreeZipper FilePath -> D.DList (ListZipper (TZ.TreeZipper FilePath))
-collect tz = case TZ.up tz of
-    Nothing  -> D.singleton (makeRoot tz)
-    Just tz' -> D.snoc (collect tz') (makeLevel tz)
+    :: TZ.TreeZipper FilePath
+    -> A [TZ.TreeZipper FilePath] (D.DList (ListZipper (TZ.TreeZipper FilePath)))
+collect x = if isIndex' x then (collect'' (TZ.up x)) else B (collect' x) --altid nederste level kan være unslected
+  where
+    collect'' Nothing = A (makeRoot' x) D.empty
+    collect'' (Just tz) = A (makeLevel' x) (collect' tz)
+
+    makeRoot' (TZ.TreeZipper x _ ls rs) = fmap TZ.fromRoseTree $ ls ++ rs
+
+    collect' tz = case TZ.up tz of
+        Nothing  -> D.singleton (makeRoot tz)
+        Just tz' -> D.snoc (collect' tz') (makeLevel tz)
+
+
+data A a b = A a b | B b
+
+
+instance Bifoldable A where
+  bifoldMap f g (A a b) = f a <> g b
+  bifoldMap _ g (B b) = g b
 
 
 makeLevel :: TZ.TreeZipper FilePath -> ListZipper (TZ.TreeZipper FilePath)
-makeLevel tz = TZ.siblings tz
+makeLevel tz = ListZipper (filter (not . isIndex') (TZ.lefts tz)) tz (filter (not . isIndex') (TZ.rights tz))
+
+
+makeLevel' :: TZ.TreeZipper FilePath -> [TZ.TreeZipper FilePath]
+makeLevel' tz = (TZ.lefts tz) ++ (TZ.rights tz)
 
 
 makeRoot :: TZ.TreeZipper FilePath -> ListZipper (TZ.TreeZipper FilePath)
@@ -154,26 +187,40 @@ showItems
        , Has LinkStyle env
        , Has Menu env
        )
-    => ListZipper (TZ.TreeZipper String)
+    => D.DList (ListZipper (TZ.TreeZipper String))
     -> m H.Html
-showItems zipper = do
-    (Style              style             ) <- grab @Style
-    (LinkStyle          linkStyle         ) <- grab @LinkStyle
-    (LinkSelectionStyle linkSelectionStyle) <- grab @LinkSelectionStyle
-    (LevelStyle         levelStyle        ) <- grab @LevelStyle
-    let items = filter (\x -> TZ.datum (snd x) /= "index.html") $ toList $ mapC
-            (linkStyle         , )
-            (linkSelectionStyle, )
-            zipper
-    items' <- F.foldMapM showItem items
-    return $ H.ul ! A.class_ levelStyle $ items'
+showItems xs = do
+    (LevelStyle levelStyle) <- grab @LevelStyle
+    levels                  <- mapM (mapCM showNormalItem showSelectionItem) xs
+    return $ mconcat $ D.toList $ fmap (H.ul ! A.class_ levelStyle) $ fmap (mconcat . toList) levels
+
+showIndex
+    :: ( MonadReader env m
+       , Has ItemStyle env
+       , Has Style env
+       , Has LevelStyle env
+       , Has LinkSelectionStyle env
+       , Has LinkStyle env
+       , Has Menu env
+       )
+    => [TZ.TreeZipper String]
+    -> m H.Html
+showIndex xs = do
+    (LevelStyle levelStyle) <- grab @LevelStyle
+    levels                  <- mapM showNormalItem xs
+    return $ H.ul ! A.class_ levelStyle $ mconcat $ levels
+
+
+isIndex' :: TZ.TreeZipper String -> Bool
+isIndex' x = TZ.datum x == "index.html"
 
 
 showItem
     :: (MonadReader env m, Has ItemStyle env, Has Style env, Has Menu env)
-    => (H.AttributeValue, TZ.TreeZipper String)
+    => H.AttributeValue
+    -> TZ.TreeZipper String
     -> m H.Html
-showItem (itemStyle', tz) = do
+showItem linkStyle tz = do
     (Style     style    ) <- grab @Style
     (ItemStyle itemStyle) <- grab @ItemStyle
     let link = (++) "/" $ mconcat $ TZ.path tz
@@ -182,9 +229,35 @@ showItem (itemStyle', tz) = do
         $ H.li
         ! A.class_ itemStyle
         $ H.a
-        ! A.class_ itemStyle'
+        ! A.class_ linkStyle
         ! A.href (fromString link)
         $ H.toHtml text
+
+showNormalItem
+    :: ( MonadReader env m
+       , Has LinkStyle env
+       , Has ItemStyle env
+       , Has Style env
+       , Has Menu env
+       )
+    => TZ.TreeZipper String
+    -> m H.Html
+showNormalItem tz = do
+    (LinkStyle linkStyle) <- grab @LinkStyle
+    showItem linkStyle tz
+
+showSelectionItem
+    :: ( MonadReader env m
+       , Has LinkSelectionStyle env
+       , Has ItemStyle env
+       , Has Style env
+       , Has Menu env
+       )
+    => TZ.TreeZipper String
+    -> m H.Html
+showSelectionItem tz = do
+    (LinkSelectionStyle linkSelectionStyle) <- grab @LinkSelectionStyle
+    showItem linkSelectionStyle tz
 
 
 showText :: TZ.TreeZipper String -> String
