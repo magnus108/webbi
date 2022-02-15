@@ -84,6 +84,47 @@ instance Traversable D.DList where
       cons_f x = liftA2 D.cons (f x)
 
 
+collect
+    :: TZ.TreeZipper FilePath
+    -> A [TZ.TreeZipper FilePath] (D.DList (ListZipper (TZ.TreeZipper FilePath)))
+collect x = if isIndex' x then (collect'' (TZ.up x)) else B (collect' x)
+    where
+        collect'' Nothing = A (makeRoot' x) D.empty
+        collect'' (Just tz) = A (makeLevel' x) (collect' tz)
+
+        collect' tz = case TZ.up tz of
+            Nothing  -> D.singleton (makeRoot tz)
+            Just tz' -> D.snoc (collect' tz') (makeLevel tz)
+
+
+data A a b = A a b | B b
+
+
+instance Bifoldable A where
+  bifoldMap f g (A a b) = f a <> g b
+  bifoldMap _ g (B b) = g b
+
+
+makeLevel :: TZ.TreeZipper FilePath -> ListZipper (TZ.TreeZipper FilePath)
+makeLevel tz = ListZipper (filter (not . isIndex') (TZ.lefts tz)) tz (filter (not . isIndex') (TZ.rights tz))
+
+
+makeLevel' :: TZ.TreeZipper FilePath -> [TZ.TreeZipper FilePath]
+makeLevel' tz = (TZ.lefts tz) ++ (TZ.rights tz)
+
+
+makeRoot :: TZ.TreeZipper FilePath -> ListZipper (TZ.TreeZipper FilePath)
+makeRoot (TZ.TreeZipper x _ ls rs) = fmap TZ.fromRoseTree $ ListZipper ls x rs
+
+makeRoot' :: TZ.TreeZipper FilePath -> [TZ.TreeZipper FilePath]
+makeRoot' (TZ.TreeZipper x _ ls rs) = fmap TZ.fromRoseTree $ ls ++ rs
+
+
+isIndex' :: TZ.TreeZipper String -> Bool
+isIndex' x = TZ.datum x == "index.html"
+
+
+
 data Env = Env
     { menu :: Menu
     , style :: Style
@@ -143,40 +184,6 @@ createMenu = do
     return $ showHeader $ H.nav ! A.class_ style $ items
 
 
-collect
-    :: TZ.TreeZipper FilePath
-    -> A [TZ.TreeZipper FilePath] (D.DList (ListZipper (TZ.TreeZipper FilePath)))
-collect x = if isIndex' x then (collect'' (TZ.up x)) else B (collect' x) --altid nederste level kan være unslected
-  where
-    collect'' Nothing = A (makeRoot' x) D.empty
-    collect'' (Just tz) = A (makeLevel' x) (collect' tz)
-
-    makeRoot' (TZ.TreeZipper x _ ls rs) = fmap TZ.fromRoseTree $ ls ++ rs
-
-    collect' tz = case TZ.up tz of
-        Nothing  -> D.singleton (makeRoot tz)
-        Just tz' -> D.snoc (collect' tz') (makeLevel tz)
-
-
-data A a b = A a b | B b
-
-
-instance Bifoldable A where
-  bifoldMap f g (A a b) = f a <> g b
-  bifoldMap _ g (B b) = g b
-
-
-makeLevel :: TZ.TreeZipper FilePath -> ListZipper (TZ.TreeZipper FilePath)
-makeLevel tz = ListZipper (filter (not . isIndex') (TZ.lefts tz)) tz (filter (not . isIndex') (TZ.rights tz))
-
-
-makeLevel' :: TZ.TreeZipper FilePath -> [TZ.TreeZipper FilePath]
-makeLevel' tz = (TZ.lefts tz) ++ (TZ.rights tz)
-
-
-makeRoot :: TZ.TreeZipper FilePath -> ListZipper (TZ.TreeZipper FilePath)
-makeRoot (TZ.TreeZipper x _ ls rs) = fmap TZ.fromRoseTree $ ListZipper ls x rs
-
 
 showItems
     :: ( MonadReader env m
@@ -209,10 +216,6 @@ showIndex xs = do
     (LevelStyle levelStyle) <- grab @LevelStyle
     levels                  <- mapM showNormalItem xs
     return $ H.ul ! A.class_ levelStyle $ mconcat $ levels
-
-
-isIndex' :: TZ.TreeZipper String -> Bool
-isIndex' x = TZ.datum x == "index.html"
 
 
 showItem
