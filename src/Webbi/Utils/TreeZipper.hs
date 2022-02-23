@@ -166,6 +166,10 @@ siblings :: Eq a => TreeZipper a -> ListZipper (TreeZipper a)
 siblings tz = ListZipper (lefts tz) tz (rights tz)
 
 
+siblings' :: Eq a => TreeZipper a -> [TreeZipper a]
+siblings' tz = (lefts tz) ++ (rights tz)
+
+
 toForest :: TreeZipper a -> Forest a
 toForest (TreeZipper x _ ls rs) = Forest (ls ++ x : rs)
 
