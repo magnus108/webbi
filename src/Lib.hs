@@ -72,6 +72,9 @@ content = "**/index.md"
 root :: String
 root = "MISSING"
 
+frontPage :: Pattern
+frontPage = "index.html"
+
 
 feedConfiguration :: FeedConfiguration
 feedConfiguration = FeedConfiguration { feedTitle       = "Magnus Møller"
@@ -176,7 +179,7 @@ compileFrontPage = match "index.html" $ do
 
 
 compileMenu :: Rules ()
-compileMenu = match content $ do
+compileMenu = match (content .&&. frontPage) $ do
     version "menu" $ compile $ do
         item  <- setVersion Nothing <$> getUnderlying
         route <- getRoute item
@@ -245,6 +248,7 @@ getMenu = do
         Just r  -> do
             items <- loadAll $ fromVersion $ Just "menu"
             let menu = M.fromTreeZipper $ TZ.fromList r $ fmap itemBody items
+            traceShowM $ TZ.fromList r $ fmap itemBody items
             return $ renderHtml menu
 
 
@@ -267,7 +271,7 @@ compilePdf = match content $ version "pdf" $ do
 
 
 compileFrontPagePdf :: Rules () -- fix this dublicate
-compileFrontPagePdf = match "index.html" $ version "pdf" $ do
+compileFrontPagePdf = match frontPage $ version "pdf" $ do
     route $ setExtension "pdf"
     compile $ do
         r <- getResourceFilePath
